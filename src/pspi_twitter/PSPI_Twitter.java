@@ -5,15 +5,15 @@
  */
 package pspi_twitter;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import twitter4j.Trend;
-import twitter4j.Trends;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
+import java.util.Date;
+import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import twitter4j.FilterQuery;
+import twitter4j.TwitterStream;
+import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
-import twitter4j.auth.RequestToken;
 
 /**
  *
@@ -21,53 +21,60 @@ import twitter4j.auth.RequestToken;
  */
 public class PSPI_Twitter {
 
-    private static final String requestTokenString = "ER8jr24e1yXP0zU07a6ath0cb";
-    private static final String requestSecretString = "ASySBOVsFZlm7GummsRBD2YbBoRAmvgRhOLWtKVfxTP3E0SS4g";
+    public static final String requestTokenString = "ER8jr24e1yXP0zU07a6ath0cb";
+    public static final String requestSecretString = "ASySBOVsFZlm7GummsRBD2YbBoRAmvgRhOLWtKVfxTP3E0SS4g";
 
-    private static final long   userID = 2843777541L;
-    private static final String accessTokenString = "2843777541-TMnA2qa58IYANJmcRXLvrtk8Mp75ybGn50Avi3n";
-    private static final String accessSecretString = "shsIsXdkDlptw2yTL5vvOGVMXZMJzmsWXF2D0VMolJ7kj";
+    public static final String accessTokenString = "2843777541-TMnA2qa58IYANJmcRXLvrtk8Mp75ybGn50Avi3n";
+    public static final String accessSecretString = "shsIsXdkDlptw2yTL5vvOGVMXZMJzmsWXF2D0VMolJ7kj";
+
+    public static final long REPEAT_INTERVAL_IN_SECS = 300;
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        try {
-            // TODO code application logic here
+    public static void main(String[] args) throws InterruptedException {
+        // First arg is the thread name, second arg is whether the thread is a daemon
+        // Setting it to false means that the process won't terminate unless 
+        // the timer is canceled
+        Timer t = new Timer("TrendGetter", false);
+        // Schedule now and every X milliseconds afterwards
+        t.scheduleAtFixedRate(new TrendGetter(), new Date(),
+                REPEAT_INTERVAL_IN_SECS * 1000);
 
-            Twitter twitter = TwitterFactory.getSingleton();
-            twitter.setOAuthConsumer(requestTokenString, requestSecretString);
-            
-            /*
-             * Request token is not required once you get  
-             * the OAuth Access tokens from the API.
-             */
-            //RequestToken requestToken = twitter.getOAuthRequestToken();
-            
-            /*
-             * Alternatively you can authenticate using a PIN given by 
-             * the URL returned from the request token.
-             */
-            
-            //System.out.println(requestToken.getAuthorizationURL());
-            // ... Type PIN ...
-            //AccessToken tok = twitter.getOAuthAccessToken(requestToken, pin);
-            
-            twitter.setOAuthAccessToken(new AccessToken(accessTokenString, 
-                                                        accessSecretString) );
-            
-
-            // Get trends at global level (WOEID 1 = Global)
-            // (Yahoo Where On Earth ID) 
-            Trends placeTrends = twitter.trends().getPlaceTrends(1);
-
-            for (Trend t : placeTrends.getTrends()) {
-                System.out.println(t.getName());
-            }
-
-        } catch (TwitterException ex) {
-            Logger.getLogger(PSPI_Twitter.class.getName()).log(Level.SEVERE, null, ex);
+        /*
+         ExecutorService pool = Executors.newCachedThreadPool();
+         pool.execute();
+         pool.shutdown();
+		
+         // Await termination
+         try {
+         while (!pool.awaitTermination(1, TimeUnit.MINUTES)) {
+         }
+         } catch (InterruptedException e) {
+         System.err.println("Interrupt!");
+         }
+         */
+        TwitterStream twitterStream = new TwitterStreamFactory().getInstance();
+        twitterStream.setOAuthConsumer(requestTokenString, requestSecretString);
+        twitterStream.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString));
+        twitterStream.addListener(new TweetStreamListener());
+        
+        // Wait till the list has elements, check every 5 seconds
+        while(TrendList.getInstance().isEmpty()) {
+            TimeUnit.SECONDS.sleep(5);
         }
+        
+        FilterQuery fq = new FilterQuery();
+        fq.track(TrendList.getInstance().getNewTrendTracker());
+        twitterStream.filter(fq);
+        
+        // Stream loop
+        while(true) {
+            TimeUnit.MINUTES.sleep(5);
+            fq.track(TrendList.getInstance().getNewTrendTracker());
+            twitterStream.filter(fq);
+        }
+        
     }
 
 }
