@@ -7,13 +7,12 @@ package pspi_twitter;
 
 import java.util.Date;
 import java.util.Timer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import twitter4j.FilterQuery;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
+import twitter4j.conf.ConfigurationBuilder;
 
 /**
  *
@@ -41,22 +40,19 @@ public class PSPI_Twitter {
         t.scheduleAtFixedRate(new TrendGetter(), new Date(),
                 REPEAT_INTERVAL_IN_SECS * 1000);
 
-        /*
-         ExecutorService pool = Executors.newCachedThreadPool();
-         pool.execute();
-         pool.shutdown();
-		
-         // Await termination
-         try {
-         while (!pool.awaitTermination(1, TimeUnit.MINUTES)) {
-         }
-         } catch (InterruptedException e) {
-         System.err.println("Interrupt!");
-         }
-         */
+        
+        
+        // Initialize the streaming API
+        
+        // Configure to accept JSON files
+        ConfigurationBuilder conf = new ConfigurationBuilder();
+        conf.setJSONStoreEnabled(true);
+        // Initialize twitter with the custom configuration
         TwitterStream twitterStream = new TwitterStreamFactory().getInstance();
+        // Set tokens
         twitterStream.setOAuthConsumer(requestTokenString, requestSecretString);
         twitterStream.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString));
+        
         twitterStream.addListener(new TweetStreamListener());
         
         // Wait till the list has elements, check every 5 seconds
@@ -64,12 +60,14 @@ public class PSPI_Twitter {
             TimeUnit.SECONDS.sleep(5);
         }
         
+        // Set the filter query and start tracking the trending topics
         FilterQuery fq = new FilterQuery();
         fq.track(TrendList.getInstance().getNewTrendTracker());
         twitterStream.filter(fq);
         
         // Stream loop
-        while(true) {
+        // Every 5 minutes update the 
+        while(!TrendList.getInstance().isEmpty()) {
             TimeUnit.MINUTES.sleep(5);
             fq.track(TrendList.getInstance().getNewTrendTracker());
             twitterStream.filter(fq);

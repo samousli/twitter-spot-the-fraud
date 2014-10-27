@@ -13,7 +13,6 @@ import static pspi_twitter.PSPI_Twitter.requestTokenString;
 import twitter4j.AsyncTwitter;
 import twitter4j.AsyncTwitterFactory;
 import twitter4j.auth.AccessToken;
-import twitter4j.conf.ConfigurationBuilder;
 
 /**
  *
@@ -25,11 +24,8 @@ public class TrendGetter extends TimerTask {
     private AsyncTwitter twitter;
     
     private void initialize() {
-        // Configure to accept JSON files
-        ConfigurationBuilder conf = new ConfigurationBuilder();
-        conf.setJSONStoreEnabled(true);
-        // Initialize twitter with the custom configuration
-        twitter = new AsyncTwitterFactory(conf.build()).getInstance();
+        
+        twitter = new AsyncTwitterFactory().getInstance();
         // Authenticate using the credentials (Tokens don't time out)
         twitter.setOAuthConsumer(requestTokenString, requestSecretString);
         twitter.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString) );
