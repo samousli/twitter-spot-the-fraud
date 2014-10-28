@@ -17,7 +17,7 @@ public class AsyncTwitterListener extends TwitterAdapter {
 
     @Override
     public void gotPlaceTrends(Trends trends) {
-        System.out.println("In here");
+        System.out.println("Fetched the new trends");
         for (Trend t : trends.getTrends()) {
             System.out.println("TREND: " + t.getName());
             TrendList.getInstance().addTrend(t);

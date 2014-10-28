@@ -40,7 +40,7 @@ public class TrendGetter extends TimerTask {
     public void run() {
         if (!initialized)
             initialize();
-        System.out.println(initialized);
+        System.out.println("Requesting new trends");
         twitter.getPlaceTrends(1);
         
     }

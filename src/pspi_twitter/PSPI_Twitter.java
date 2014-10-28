@@ -30,6 +30,7 @@ public class PSPI_Twitter {
 
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
         // First arg is the thread name, second arg is whether the thread is a daemon
@@ -62,7 +63,16 @@ public class PSPI_Twitter {
         
         // Set the filter query and start tracking the trending topics
         FilterQuery fq = new FilterQuery();
-        fq.track(TrendList.getInstance().getNewTrendTracker());
+        //You can think of commas as logical ORs, 
+        // while spaces are equivalent to logical ANDs 
+        // (e.g. ‘the twitter’ is the AND twitter, 
+        //  and ‘the,twitter’ is the OR twitter).
+        String[] tracked = TrendList.getInstance().getNewTrendTracker();
+        for (String c : tracked) {
+            System.out.println("Query:" + c);
+        }
+        
+        fq.track(tracked);
         twitterStream.filter(fq);
         
         // Stream loop

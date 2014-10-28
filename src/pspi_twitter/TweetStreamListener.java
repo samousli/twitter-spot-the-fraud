@@ -20,7 +20,7 @@ public class TweetStreamListener implements StatusListener {
     @Override
     public void onStatus(Status status) {
         System.out.println(status.getUser().getName() + " : " + status.getText());
-        String json = TwitterObjectFactory.getRawJSON(status);
+        // String json = TwitterObjectFactory.getRawJSON(status);
     }
     
     
