@@ -27,6 +27,7 @@ public class PSPI_Twitter {
     public static final String accessSecretString = "shsIsXdkDlptw2yTL5vvOGVMXZMJzmsWXF2D0VMolJ7kj";
 
     public static final long REPEAT_INTERVAL_IN_SECS = 300;
+    
 
     /**
      * @param args the command line arguments
@@ -41,7 +42,6 @@ public class PSPI_Twitter {
         t.scheduleAtFixedRate(new TrendGetter(), new Date(),
                 REPEAT_INTERVAL_IN_SECS * 1000);
 
-        
         
         // Initialize the streaming API
         
