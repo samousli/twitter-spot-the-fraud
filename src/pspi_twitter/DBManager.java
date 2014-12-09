@@ -42,8 +42,7 @@ public class DBManager {
         this.tweetsCollection = this.db.getCollection("trendsCollection");
     }
     
-    public void insertTrend(String trend){
-        BasicDBObject trendObject = new BasicDBObject("trend", trend);
+    public void insertTrend(BasicDBObject trendObject){
         this.trendsCollection.insert(trendObject);
     }
     

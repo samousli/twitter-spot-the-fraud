@@ -25,6 +25,8 @@ public class PSPI_Twitter {
 
     public static final String accessTokenString = "2843777541-TMnA2qa58IYANJmcRXLvrtk8Mp75ybGn50Avi3n";
     public static final String accessSecretString = "shsIsXdkDlptw2yTL5vvOGVMXZMJzmsWXF2D0VMolJ7kj";
+    
+    public static String connectionString = ""; //TODO: I dont know actually :P
 
     public static final long REPEAT_INTERVAL_IN_SECS = 300;
     
@@ -41,7 +43,9 @@ public class PSPI_Twitter {
         // Schedule now and every X milliseconds afterwards
         t.scheduleAtFixedRate(new TrendGetter(), new Date(),
                 REPEAT_INTERVAL_IN_SECS * 1000);
-
+        
+        //create the database manager
+        DBManager dbm=new DBManager();
         
         // Initialize the streaming API
         
