@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pspi_twitter;
+package TweetCollector;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;

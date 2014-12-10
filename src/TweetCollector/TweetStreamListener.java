@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pspi_twitter;
+package TweetCollector;
 
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -19,7 +19,7 @@ public class TweetStreamListener implements StatusListener {
 
     @Override
     public void onStatus(Status status) {
-        System.out.println(status.getUser().getName() + " : " + status.getText());
+        //System.out.println(status.getUser().getName() + " : " + status.getText());
         // String json = TwitterObjectFactory.getRawJSON(status);
     }
     
@@ -46,7 +46,9 @@ public class TweetStreamListener implements StatusListener {
     public void onScrubGeo(long l, long l1) {}
     
     @Override
-    public void onTrackLimitationNotice(int i) {}
+    public void onTrackLimitationNotice(int i) {
+        System.out.println(i + " tweets missed due to track limitation.");
+    }
 
     @Override
     public void onException(Exception excptn) {}

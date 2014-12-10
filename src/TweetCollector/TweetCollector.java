@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pspi_twitter;
+package TweetCollector;
 
 import java.util.Date;
 import java.util.Timer;
@@ -18,7 +18,7 @@ import twitter4j.conf.ConfigurationBuilder;
  *
  * @author george
  */
-public class PSPI_Twitter {
+public class TweetCollector {
 
     public static final String requestTokenString = "ER8jr24e1yXP0zU07a6ath0cb";
     public static final String requestSecretString = "ASySBOVsFZlm7GummsRBD2YbBoRAmvgRhOLWtKVfxTP3E0SS4g";

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pspi_twitter;
+package TweetCollector;
 
 import twitter4j.Trend;
 import twitter4j.Trends;
@@ -17,7 +17,7 @@ public class AsyncTwitterListener extends TwitterAdapter {
 
     @Override
     public void gotPlaceTrends(Trends trends) {
-        System.out.println("Fetched the new trends");
+        System.out.println("Fetched the new trends..");
         for (Trend t : trends.getTrends()) {
             System.out.println("TREND: " + t.getName());
             TrendList.getInstance().addTrend(t);

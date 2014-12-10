@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pspi_twitter;
+package TweetCollector;
 
 import java.util.TimerTask;
-import static pspi_twitter.PSPI_Twitter.accessSecretString;
-import static pspi_twitter.PSPI_Twitter.accessTokenString;
-import static pspi_twitter.PSPI_Twitter.requestSecretString;
-import static pspi_twitter.PSPI_Twitter.requestTokenString;
+import static TweetCollector.TweetCollector.accessSecretString;
+import static TweetCollector.TweetCollector.accessTokenString;
+import static TweetCollector.TweetCollector.requestSecretString;
+import static TweetCollector.TweetCollector.requestTokenString;
 import twitter4j.AsyncTwitter;
 import twitter4j.AsyncTwitterFactory;
 import twitter4j.auth.AccessToken;
