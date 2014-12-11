@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import twitter4j.Trend;
 
 /**
@@ -36,7 +37,7 @@ public class TrendList {
         List<String> s = new ArrayList<>();
         Set<Map.Entry<Trend, TrendData>> entrySet = trends.entrySet();
         for (Map.Entry<Trend, TrendData> entry : entrySet) 
-            if (entry.getValue().timeElapsed() < TIMEOUT_IN_MINS)
+            if (entry.getValue().timeElapsedinMinutes() < TIMEOUT_IN_MINS)
                 s.add(entry.getKey().getName());
         
         String[] sa = new String[s.size()];
@@ -57,7 +58,7 @@ public class TrendList {
             time = c;
         }
 
-        public long timeElapsed() {
+        public long timeElapsedinMinutes() {
             return (Calendar.getInstance().getTimeInMillis()
                     - time.getTimeInMillis()) / 60000;
         }

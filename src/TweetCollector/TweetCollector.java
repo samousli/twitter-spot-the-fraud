@@ -8,10 +8,10 @@ package TweetCollector;
 import java.util.Date;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
+
 import twitter4j.FilterQuery;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
-import twitter4j.auth.AccessToken;
 import twitter4j.conf.ConfigurationBuilder;
 
 /**
@@ -26,39 +26,42 @@ public class TweetCollector {
     public static final String accessTokenString = "2843777541-TMnA2qa58IYANJmcRXLvrtk8Mp75ybGn50Avi3n";
     public static final String accessSecretString = "shsIsXdkDlptw2yTL5vvOGVMXZMJzmsWXF2D0VMolJ7kj";
     
-    public static String connectionString = ""; //TODO: I dont know actually :P
+    public static final String mongoConnectionString = "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
 
     public static final long REPEAT_INTERVAL_IN_SECS = 300;
     
-
+    public static final DBManager dbm = new DBManager(); //  mongoConnectionString
+    
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
+    	
+    	
         // First arg is the thread name, second arg is whether the thread is a daemon
         // Setting it to false means that the process won't terminate unless 
         // the timer is canceled
         Timer t = new Timer("TrendGetter", false);
         // Schedule now and every X milliseconds afterwards
-        t.scheduleAtFixedRate(new TrendGetter(), new Date(),
+        t.scheduleAtFixedRate(new ScheduledTrendGetter(), new Date(),
                 REPEAT_INTERVAL_IN_SECS * 1000);
+    
         
-        //create the database manager
-        DBManager dbm=new DBManager();
-        
-        // Initialize the streaming API
         
         // Configure to accept JSON files
         ConfigurationBuilder conf = new ConfigurationBuilder();
         conf.setJSONStoreEnabled(true);
-        // Initialize twitter with the custom configuration
-        TwitterStream twitterStream = new TwitterStreamFactory().getInstance();
-        // Set tokens
-        twitterStream.setOAuthConsumer(requestTokenString, requestSecretString);
-        twitterStream.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString));
+        conf.setIncludeEntitiesEnabled(true);
+        conf.setOAuthConsumerKey(requestTokenString);
+        conf.setOAuthConsumerSecret(requestSecretString);
+        conf.setOAuthAccessToken(accessTokenString);
+        conf.setOAuthAccessTokenSecret(accessSecretString);
         
-        twitterStream.addListener(new TweetStreamListener());
+        // Initialize twitter with the custom configuration
+        TwitterStream twitterStream = new TwitterStreamFactory(conf.build()).getInstance();
+        
+        twitterStream.addListener(new StreamingTweetListener());
         
         // Wait till the list has elements, check every 5 seconds
         while(TrendList.getInstance().isEmpty()) {
@@ -80,7 +83,7 @@ public class TweetCollector {
         twitterStream.filter(fq);
         
         // Stream loop
-        // Every 5 minutes update the 
+        // Every 5 minutes update the trend list of the query
         while(!TrendList.getInstance().isEmpty()) {
             TimeUnit.MINUTES.sleep(5);
             fq.track(TrendList.getInstance().getNewTrendTracker());

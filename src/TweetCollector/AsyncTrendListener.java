@@ -13,7 +13,7 @@ import twitter4j.TwitterAdapter;
  *
  * @author avail
  */
-public class AsyncTwitterListener extends TwitterAdapter {
+public class AsyncTrendListener extends TwitterAdapter {
 
     @Override
     public void gotPlaceTrends(Trends trends) {

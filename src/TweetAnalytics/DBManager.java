@@ -3,20 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package TweetCollector;
+package TweetAnalytics;
 
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
-import com.mongodb.util.JSON;
 
 /**
  *
@@ -25,11 +21,10 @@ import com.mongodb.util.JSON;
 public class DBManager {
 
 	DB db;
-	DBCollection tweetsCollection;
-	DBCollection trendsCollection;
+	DBCollection tweets;
 
 	public DBManager() {
-		this("mongodb://localhost:28888");
+		this("localhost");
 	}
 
 	public DBManager(String conStr) {
@@ -41,24 +36,14 @@ public class DBManager {
 			this.db = tweetsMongoClient.getDB("twitter");
 		} catch (UnknownHostException ex) {
 			System.err.println("The database could not be initialized because of an UnknownHostException.");
-			Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null,
-					ex);
+			Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		// create the tweets collection
-		this.tweetsCollection = this.db.getCollection("tweets");
-
-		// create the trends collection
-		this.trendsCollection = this.db.getCollection("trends");
+		this.tweets = this.db.getCollection("tweets");
 	}
 
-	public void insertTrend(BasicDBObject trendObject) {
-		this.trendsCollection.insert(trendObject);
-	}
+	public void groupTweetsByUser() {
 
-	public void insertTweet(String json) {
-		DBObject ob = (DBObject) JSON.parse(json);
-		
-		this.tweetsCollection.insert(ob);
 	}
 }

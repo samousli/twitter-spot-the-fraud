@@ -5,33 +5,37 @@
  */
 package TweetCollector;
 
-import java.util.TimerTask;
 import static TweetCollector.TweetCollector.accessSecretString;
 import static TweetCollector.TweetCollector.accessTokenString;
 import static TweetCollector.TweetCollector.requestSecretString;
 import static TweetCollector.TweetCollector.requestTokenString;
+
+import java.util.TimerTask;
+
 import twitter4j.AsyncTwitter;
 import twitter4j.AsyncTwitterFactory;
 import twitter4j.auth.AccessToken;
 
 /**
- *
+ * Uses Async Twitter API to get the new worldwide trending topics everytime run() is called
  * @author avail
  */
-public class TrendGetter extends TimerTask {
+public class ScheduledTrendGetter extends TimerTask {
 
     private boolean initialized = false;
     private AsyncTwitter twitter;
     
     private void initialize() {
         
+    	// 
         twitter = new AsyncTwitterFactory().getInstance();
+        
         // Authenticate using the credentials (Tokens don't time out)
         twitter.setOAuthConsumer(requestTokenString, requestSecretString);
         twitter.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString) );
         
         
-        twitter.addListener(new AsyncTwitterListener());
+        twitter.addListener(new AsyncTrendListener());
         
         initialized = true;
     }

@@ -15,12 +15,13 @@ import twitter4j.TwitterObjectFactory;
  *
  * @author avail
  */
-public class TweetStreamListener implements StatusListener {
+public class StreamingTweetListener implements StatusListener {
 
     @Override
     public void onStatus(Status status) {
         //System.out.println(status.getUser().getName() + " : " + status.getText());
-        // String json = TwitterObjectFactory.getRawJSON(status);
+        String json = TwitterObjectFactory.getRawJSON(status);
+        TweetCollector.dbm.insertTweet(json);
     }
     
     
@@ -29,13 +30,13 @@ public class TweetStreamListener implements StatusListener {
         // Twitter API keeps a bounded queue of the tweets, if it's filling up
         // Do something
         if (sw.getPercentFull() > 50) {
-            slowDown();
+            discardTweets();
         }
         System.out.println(sw);
     }
 
-    private void slowDown() {
-        // .....
+    private void discardTweets() {
+        // ..... If unable to process tweets fast enough discard em
     }
     
     
