@@ -9,10 +9,8 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
@@ -24,9 +22,9 @@ import com.mongodb.util.JSON;
  */
 public class DBManager {
 
-	DB db;
-	DBCollection tweetsCollection;
-	DBCollection trendsCollection;
+	private DB db;
+	private DBCollection tweetsCollection;
+	private DBCollection trendsCollection;
 
 	public DBManager() {
 		this("mongodb://localhost:28888");
@@ -52,10 +50,13 @@ public class DBManager {
 		this.trendsCollection = this.db.getCollection("trends");
 	}
 
-	public void insertTrend(BasicDBObject trendObject) {
-		this.trendsCollection.insert(trendObject);
+	public void insertTrend(String json) {
+		
+		DBObject ob = (DBObject) JSON.parse(json);
+		this.trendsCollection.insert(ob);
 	}
-
+	
+	
 	public void insertTweet(String json) {
 		DBObject ob = (DBObject) JSON.parse(json);
 		

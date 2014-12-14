@@ -17,10 +17,10 @@ import twitter4j.AsyncTwitterFactory;
 import twitter4j.auth.AccessToken;
 
 /**
- * Uses Async Twitter API to get the new worldwide trending topics everytime run() is called
+ * Uses the Async Twitter API to get the current worldwide trending topics every time run() is called
  * @author avail
  */
-public class ScheduledTrendGetter extends TimerTask {
+public class ScheduledTrendFetcher extends TimerTask {
 
     private boolean initialized = false;
     private AsyncTwitter twitter;
@@ -48,7 +48,4 @@ public class ScheduledTrendGetter extends TimerTask {
         twitter.getPlaceTrends(1);
         
     }
-
-    
-    
 }

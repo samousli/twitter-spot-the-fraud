@@ -27,12 +27,17 @@ public class TrendList {
     private final ConcurrentMap<Trend, TrendData> trends = new ConcurrentHashMap<>();
 
     public void addTrend(Trend t) {
-        // If exists renew stamp, else put it in to the hashmap
+        // If it exists renew stamp, else put it in the map
         if (trends.replace(t, new TrendData(Calendar.getInstance())) == null) {
-            trends.put(t, new TrendData(Calendar.getInstance()));
+        	trends.put(t, new TrendData(Calendar.getInstance()));
         }
     }
-
+    /*
+     * None of the trends are deleted.
+     * Every time a new trend tracking list is to be generated
+     * The whole collection is filtered down to trends which are
+     * considered new and valid as defined by TIMEOUT_IN_MINS
+     */
     public String[] getNewTrendTracker() {
         List<String> s = new ArrayList<>();
         Set<Map.Entry<Trend, TrendData>> entrySet = trends.entrySet();
@@ -48,7 +53,27 @@ public class TrendList {
     public boolean isEmpty() {
         return trends.isEmpty();
     }
+    
+    public void postAllTrendsToDB() {
+    	// All trends can be serialized from here
+    	// At shutdown 
+    }
+    
+    
+    // Singleton Code
+    private TrendList() {
+    }
 
+    public static TrendList getInstance() {
+        return TrendListHolder.INSTANCE;
+    }
+
+    private static class TrendListHolder {
+
+        private static final TrendList INSTANCE = new TrendList();
+    }
+    
+    // Container class
     private class TrendData {
 
         public Calendar time;
@@ -63,18 +88,4 @@ public class TrendList {
                     - time.getTimeInMillis()) / 60000;
         }
     }
-
-    // Singleton Code
-    private TrendList() {
-    }
-
-    public static TrendList getInstance() {
-        return TrendListHolder.INSTANCE;
-    }
-
-    private static class TrendListHolder {
-
-        private static final TrendList INSTANCE = new TrendList();
-    }
-
 }
