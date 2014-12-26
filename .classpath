@@ -13,5 +13,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/pspi_twitter/lib/MongoDriver/mongo-java-driver-2.6.5-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/MongoDriver/mongo-java-driver-2.6.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
