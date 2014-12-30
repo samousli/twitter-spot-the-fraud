@@ -5,16 +5,13 @@
  */
 package TweetCollector;
 
-import static TweetCollector.TweetCollector.accessSecretString;
-import static TweetCollector.TweetCollector.accessTokenString;
-import static TweetCollector.TweetCollector.requestSecretString;
-import static TweetCollector.TweetCollector.requestTokenString;
-
 import java.util.TimerTask;
 
 import twitter4j.AsyncTwitter;
 import twitter4j.AsyncTwitterFactory;
-import twitter4j.auth.AccessToken;
+import twitter4j.Trend;
+import twitter4j.Trends;
+import twitter4j.TwitterAdapter;
 
 /**
  * Uses the Async Twitter API to get the current worldwide trending topics every time run() is called
@@ -26,15 +23,8 @@ public class ScheduledTrendFetcher extends TimerTask {
     private AsyncTwitter twitter;
     
     private void initialize() {
-        
-    	// 
-        twitter = new AsyncTwitterFactory().getInstance();
-        
-        // Authenticate using the credentials (Tokens don't time out)
-        twitter.setOAuthConsumer(requestTokenString, requestSecretString);
-        twitter.setOAuthAccessToken(new AccessToken(accessTokenString, accessSecretString) );
-        
-        
+     
+        twitter = new AsyncTwitterFactory(Utils.TwitterConfBuilder.buildConf()).getInstance();
         twitter.addListener(new AsyncTrendListener());
         
         initialized = true;
@@ -47,5 +37,18 @@ public class ScheduledTrendFetcher extends TimerTask {
         System.out.println("Requesting new trends");
         twitter.getPlaceTrends(1);
         
+    }
+}
+
+class AsyncTrendListener extends TwitterAdapter {
+
+    @Override
+    public void gotPlaceTrends(Trends trends) {
+        System.out.println("Fetched the new trends..");
+        for (Trend t : trends.getTrends()) {
+            System.out.println("TREND: " + t.getName());
+            TrendList.getInstance().addTrend(t);
+
+        }
     }
 }
