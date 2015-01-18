@@ -67,10 +67,14 @@ public class TweetCollector {
 		
 		// Wait for console input
 		System.out.println("type 'exit' or 'q' to exit.");
+		System.out.println("type 'count' or 'c' to check the current tweet count.");
 		Scanner reader = new Scanner(System.in);
 		String s = reader.nextLine().trim().toLowerCase();
 		while(!s.equals("exit") && !s.equals("q")) {
 			s = reader.nextLine().trim().toLowerCase();
+			if (s.equals("count") || s.equals("c")) {
+				System.out.println("Count:\t" + DBManager.tweetCount());
+			}
 		}
 		reader.close();
 		

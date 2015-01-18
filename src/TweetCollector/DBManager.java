@@ -26,9 +26,9 @@ import com.mongodb.util.JSON;
  */
 public class DBManager {
 
-	private DB db;
-	private DBCollection tweetsCollection;
-	private DBCollection trendsCollection;
+	private static DB db;
+	private static DBCollection tweetsCollection;
+	private static DBCollection trendsCollection;
 
 	public DBManager() {
 		this("mongodb://localhost:28888");
@@ -107,6 +107,11 @@ public class DBManager {
 	public void insertTweet(String json) {
 		DBObject ob = (DBObject) JSON.parse(json);
 		
-		this.tweetsCollection.insert(ob);
+		tweetsCollection.insert(ob);
+	}
+	
+	public static long tweetCount() {
+		return tweetsCollection.getCount();
+		
 	}
 }
