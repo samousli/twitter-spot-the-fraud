@@ -126,4 +126,8 @@ public class DBManager {
 		return tweetsCollection.getCount();
 
 	}
+	
+	public DBCollection getTweets(){
+		return tweetsCollection;
+	}
 }

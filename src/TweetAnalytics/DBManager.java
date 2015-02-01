@@ -105,4 +105,9 @@ public class DBManager {
 		}//*/
 
 	}
+
+	public DBCollection getTweets() {
+		return this.tweetsCollection;
+	}
+
 }
