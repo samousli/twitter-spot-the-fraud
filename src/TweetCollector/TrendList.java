@@ -9,14 +9,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import TweetAnalytics.DBManager;
 import twitter4j.Trend;
 
 /**
- *
+ *	A singleton class for the concurrent list which holds the trends.
  * @author avail
  */
 public class TrendList {
@@ -43,10 +45,13 @@ public class TrendList {
         Set<Map.Entry<Trend, TrendData>> entrySet = trends.entrySet();
         for (Map.Entry<Trend, TrendData> entry : entrySet) 
             if (entry.getValue().timeElapsedinMinutes() < TIMEOUT_IN_MINS)
-                s.add(entry.getKey().getName());
+                s.add(entry.getKey().getName()); 
+        		// Using query instead of name field to filter out substrings that don't fully match
         
         String[] sa = new String[s.size()];
-
+        
+        postTrendsToDB();
+        
         return s.toArray(sa);
     }
     
@@ -54,9 +59,25 @@ public class TrendList {
         return trends.isEmpty();
     }
     
-    public void postAllTrendsToDB() {
-    	// All trends can be serialized from here
-    	// At shutdown 
+    private void postTrendsToDB() {
+    	TweetCollector.dbm.insertTrends(trends.entrySet());
+    }
+    
+    
+    // Data class
+    public class TrendData {
+
+        public Calendar time;
+        //public boolean inUse = false;
+
+        public TrendData(Calendar c) {
+            time = c;
+        }
+
+        public long timeElapsedinMinutes() {
+            return (Calendar.getInstance().getTimeInMillis()
+                    - time.getTimeInMillis()) / 60000;
+        }
     }
     
     
@@ -71,21 +92,5 @@ public class TrendList {
     private static class TrendListHolder {
 
         private static final TrendList INSTANCE = new TrendList();
-    }
-    
-    // Container class
-    private class TrendData {
-
-        public Calendar time;
-        //public boolean inUse = false;
-
-        public TrendData(Calendar c) {
-            time = c;
-        }
-
-        public long timeElapsedinMinutes() {
-            return (Calendar.getInstance().getTimeInMillis()
-                    - time.getTimeInMillis()) / 60000;
-        }
     }
 }

@@ -46,7 +46,7 @@ class AsyncTrendListener extends TwitterAdapter {
     public void gotPlaceTrends(Trends trends) {
         System.out.println("Fetched the new trends..");
         for (Trend t : trends.getTrends()) {
-            System.out.println("TREND: " + t.getName());
+            //System.out.println("TREND: " + t);
             TrendList.getInstance().addTrend(t);
 
         }

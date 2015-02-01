@@ -5,6 +5,7 @@
  */
 package TweetCollector;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.Timer;
@@ -34,9 +35,9 @@ public class TweetCollector {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		// First arg is the thread name, second arg is whether the thread is a
-		// daemon
-		// Setting it to false means that the process won't terminate unless
+		// The first arg is the thread name, 
+		// the second arg is a daemon flag.
+		// Setting it to false so that the process won't terminate unless
 		// the timer is canceled
 		Timer fetchTimer = new Timer("TrendFetcher", false);
 		// Schedule now and every X milliseconds afterwards
@@ -44,7 +45,7 @@ public class TweetCollector {
 				REPEAT_INTERVAL_IN_SECS * 1000);
 
 		
-		// Initialize twitter with the custom configuration
+		// Initialize twitter with the custom conf
 		TwitterStream twitterStream = new TwitterStreamFactory(
 				Utils.TwitterConfBuilder.buildConf())
 				.getInstance();
@@ -56,7 +57,9 @@ public class TweetCollector {
 			TimeUnit.SECONDS.sleep(1);
 		}
 
-		// Set the filter query and start tracking the trending topics
+		// Initialize the filter query and start tracking the trending topics
+		// The trend tracker updates the filter and 
+		// the tweet fetcher automatically makes use of the new filter
 		FilterQuery fq = new FilterQuery();
 		
 		Timer updateTimer = new Timer("TrendTrackerUpdater", false);
@@ -96,11 +99,17 @@ class TrendTrackerUpdater extends TimerTask {
 
 	@Override
 	public void run() {
-		// commas can be thought of as logical ORs,
+		// Commas can be thought of as logical ORs,
 		// while spaces are equivalent to logical ANDs
 		// (e.g. ‘the twitter’ equals (the AND twitter),
 		// and ‘the,twitter’ equals (the OR twitter).
-		fq.track(TrendList.getInstance().getNewTrendTracker());
+		String[] track = TrendList.getInstance().getNewTrendTracker();
+		String single = Arrays.asList(track).toString().replace("[","").replace("]","");
+		System.out.println("Tracking:");
+		System.out.println("\t" + single);
+		fq.track(new String[] {single});
+		
+		// The default access level allows up to 200 track keywords
 		twitterStream.filter(fq);
 	}
 

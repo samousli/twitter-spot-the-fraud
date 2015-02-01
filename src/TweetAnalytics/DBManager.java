@@ -19,6 +19,7 @@ import com.mongodb.CommandResult;
 import com.mongodb.Cursor;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
@@ -46,47 +47,62 @@ public class DBManager {
 			Mongo tweetsMongoClient = new Mongo(new MongoURI(conStr));
 			this.db = tweetsMongoClient.getDB("twitter_mini");
 		} catch (UnknownHostException ex) {
-			System.err.println("The database could not be initialized because of an UnknownHostException.");
+			System.err
+					.println("The database could not be initialized because of an UnknownHostException.");
 			Logger.getLogger(DBManager.class.getName()).log(Level.SEVERE, null,
 					ex);
 		}
-		
+
 		this.tweetsCollection = this.db.getCollection("tweets");
 
 	}
 
+	/*
+	 * db.tweets.aggregate([ { $group: {_id : '$user.id', tweet_id : {$push:
+	 * '$id'}, count: { $sum: 1 }} }, { $sort: {'count':-1} } ])
+	 */
 	public void groupTweetsByUser() {
-		
+
 		List<DBObject> pipeline = new ArrayList<>();
-		
+
 		// Group by user id
-		DBObject groupByUser = new BasicDBObject("$group", 
-				new BasicDBObject("_id", "$user.id")
-					.append("tweets", 
-						new BasicDBObject("$push", "$$ROOT"))
-					.append("size", 
-						new BasicDBObject("$sum", 1)));
-		
+		// Query: { $group: {_id : '$user.id', tweet_ids : {$push: '$id'},
+		// count: { $sum: 1 }} }
+		DBObject groupByUser = new BasicDBObject("$group", new BasicDBObject(
+				"_id", "$user.id").append("tweet_ids",
+				new BasicDBObject("$push", "$id")).append("count",
+				new BasicDBObject("$sum", 1)));
+
 		// Sort by tweet count
-		DBObject sortByTweets  = new BasicDBObject("$sort", 
-				new BasicDBObject("size", -1) );
-	
+		DBObject sortByCount = new BasicDBObject("$sort", new BasicDBObject(
+				"count", -1));
+
 		// Output to new table
-		DBObject outputToNewCollection = new BasicDBObject("$out", "by_user");
-		
-		db.command("db.tweets.aggregate([{ $group : { _id : \"$user.id\" } } ] );");
-		
+		DBObject outputToNewCollection = new BasicDBObject("$out", "users");
+
+		// db.command("db.tweets.aggregate([{ $group : { _id : \"$user.id\" } } ] );");
+
 		pipeline.add(groupByUser);
-		pipeline.add(sortByTweets);
-		
-		// Used for debugging, in production a single pipeline is sought after
+		pipeline.add(sortByCount);
 		pipeline.add(outputToNewCollection);
-		
-		AggregationOptions opts = AggregationOptions.builder().allowDiskUse(true).build();
-		
+
+		// Disk use is required for collections resulting in above 100mb of data
+		// at the group stage.
+		AggregationOptions opts = AggregationOptions.builder()
+				.allowDiskUse(true).build();
+
 		Cursor e = this.tweetsCollection.aggregate(pipeline, opts);
 		// while (e.hasNext()) System.out.println(e.next());
 
-		System.out.println(this.tweetsCollection.count());
+		// db.users.find({ $query: {}, $orderby: { count : -1 } })//.limit(100)
+		DBCursor c = db.getCollection("users").find()
+				.addSpecial("$orderby", new BasicDBObject("count", -1));
+		
+		
+		long user_count = c.count(), i = 0;
+		while (c.hasNext()) {
+			System.out.println(c.next());
+		}//*/
+
 	}
 }
