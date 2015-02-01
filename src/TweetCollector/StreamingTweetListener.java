@@ -17,40 +17,42 @@ import twitter4j.TwitterObjectFactory;
  */
 public class StreamingTweetListener implements StatusListener {
 
-    @Override
-    public void onStatus(Status status) {
-        //System.out.println(status.getUser().getName() + " : " + status.getText());
-        String json = TwitterObjectFactory.getRawJSON(status);
-        TweetCollector.dbm.insertTweet(json);
-    }
-    
-    
-    @Override
-    public void onStallWarning(StallWarning sw) {
-        // Twitter API keeps a bounded queue of the tweets, if it's filling up
-        // Do something
-        if (sw.getPercentFull() > 50) {
-            discardTweets();
-        }
-        System.out.println(sw);
-    }
+	@Override
+	public void onStatus(Status status) {
+		// System.out.println(status.getUser().getName() + " : " +
+		// status.getText());
+		String json = TwitterObjectFactory.getRawJSON(status);
+		TweetCollector.dbm.insertTweet(json);
+	}
 
-    private void discardTweets() {
-        // ..... If unable to process tweets fast enough discard em
-    }
-    
-    
-    @Override
-    public void onDeletionNotice(StatusDeletionNotice sdn) {}
+	@Override
+	public void onStallWarning(StallWarning sw) {
+		// Twitter API keeps a bounded queue of the tweets, if it's filling up
+		// Do something
+		if (sw.getPercentFull() > 50) {
+			discardTweets();
+		}
+		System.out.println(sw);
+	}
 
-    @Override
-    public void onScrubGeo(long l, long l1) {}
-    
-    @Override
-    public void onTrackLimitationNotice(int i) {
-        System.out.println(i + " tweets missed due to track limitation.");
-    }
+	private void discardTweets() {
+		// ..... If unable to process tweets fast enough discard em
+	}
 
-    @Override
-    public void onException(Exception excptn) {}
+	@Override
+	public void onDeletionNotice(StatusDeletionNotice sdn) {
+	}
+
+	@Override
+	public void onScrubGeo(long l, long l1) {
+	}
+
+	@Override
+	public void onTrackLimitationNotice(int i) {
+		System.out.println(i + " tweets missed due to track limitation.");
+	}
+
+	@Override
+	public void onException(Exception excptn) {
+	}
 }

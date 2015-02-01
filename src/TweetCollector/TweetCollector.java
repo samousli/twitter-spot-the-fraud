@@ -15,16 +15,15 @@ import java.util.concurrent.TimeUnit;
 import twitter4j.FilterQuery;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
-import twitter4j.conf.ConfigurationBuilder;
 
 /**
  *
  * @author avail
  */
 public class TweetCollector {
-	public static final String mongoConnectionString = "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
+	//public static final String mongoConnectionString = "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
 
-	public static final long REPEAT_INTERVAL_IN_SECS = 300;
+	public static final long REPEAT_INTERVAL_IN_SECS = 600;
 
 	public static final DBManager dbm = new DBManager(); // mongoConnectionString
 
@@ -35,7 +34,7 @@ public class TweetCollector {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 
-		// The first arg is the thread name, 
+		// The first arg is the thread name,
 		// the second arg is a daemon flag.
 		// Setting it to false so that the process won't terminate unless
 		// the timer is canceled
@@ -44,11 +43,9 @@ public class TweetCollector {
 		fetchTimer.scheduleAtFixedRate(new ScheduledTrendFetcher(), new Date(),
 				REPEAT_INTERVAL_IN_SECS * 1000);
 
-		
 		// Initialize twitter with the custom conf
 		TwitterStream twitterStream = new TwitterStreamFactory(
-				Utils.TwitterConfBuilder.buildConf())
-				.getInstance();
+				Utils.TwitterConfBuilder.buildConf()).getInstance();
 
 		twitterStream.addListener(new StreamingTweetListener());
 
@@ -58,29 +55,29 @@ public class TweetCollector {
 		}
 
 		// Initialize the filter query and start tracking the trending topics
-		// The trend tracker updates the filter and 
+		// The trend tracker updates the filter and
 		// the tweet fetcher automatically makes use of the new filter
 		FilterQuery fq = new FilterQuery();
-		
+
 		Timer updateTimer = new Timer("TrendTrackerUpdater", false);
 		// Schedule now and every X milliseconds afterwards
-		updateTimer.scheduleAtFixedRate(new TrendTrackerUpdater(twitterStream, fq),
-				new Date(), REPEAT_INTERVAL_IN_SECS * 1000);
-		
-		
+		updateTimer.scheduleAtFixedRate(new TrendTrackerUpdater(twitterStream,
+				fq), new Date(), REPEAT_INTERVAL_IN_SECS * 1000);
+
 		// Wait for console input
 		System.out.println("type 'exit' or 'q' to exit.");
-		System.out.println("type 'count' or 'c' to check the current tweet count.");
+		System.out
+				.println("type 'count' or 'c' to check the current tweet count.");
 		Scanner reader = new Scanner(System.in);
 		String s = reader.nextLine().trim().toLowerCase();
-		while(!s.equals("exit") && !s.equals("q")) {
+		while (!s.equals("exit") && !s.equals("q")) {
 			s = reader.nextLine().trim().toLowerCase();
 			if (s.equals("count") || s.equals("c")) {
 				System.out.println("Count:\t" + DBManager.tweetCount());
 			}
 		}
 		reader.close();
-		
+
 		fetchTimer.cancel();
 		updateTimer.cancel();
 		twitterStream.shutdown();
@@ -104,11 +101,12 @@ class TrendTrackerUpdater extends TimerTask {
 		// (e.g. ‘the twitter’ equals (the AND twitter),
 		// and ‘the,twitter’ equals (the OR twitter).
 		String[] track = TrendList.getInstance().getNewTrendTracker();
-		String single = Arrays.asList(track).toString().replace("[","").replace("]","");
+		String single = Arrays.asList(track).toString().replace("[", "")
+				.replace("]", "");
 		System.out.println("Tracking:");
 		System.out.println("\t" + single);
-		fq.track(new String[] {single});
-		
+		fq.track(new String[] { single });
+
 		// The default access level allows up to 200 track keywords
 		twitterStream.filter(fq);
 	}
