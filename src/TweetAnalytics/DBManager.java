@@ -150,4 +150,9 @@ public class DBManager {
 
 		return new int[] { q1, q2, q3 };
 	}
+
+	public DBCollection getTweets() {
+		return this.tweetsCollection;
+	}
+
 }
