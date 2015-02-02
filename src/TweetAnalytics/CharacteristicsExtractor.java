@@ -86,16 +86,15 @@ public class CharacteristicsExtractor {
 				it.remove();
 			}
 		}
-		
 		StringBuilder sb=new StringBuilder();
 		for(String token:tokens){
 			sb.append(token);
 			sb.append(" ");
 		}
 		sb.deleteCharAt(sb.length()-1);
+		String string=sb.toString().trim();
 		
-		
-		return sb.toString();
+		return string;
 	}
 	
 	
