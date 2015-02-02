@@ -32,7 +32,7 @@ public class CharacteristicsExtractor {
 	/**
 	 *
 	 * @param tweets list of all the tweets a user has posted
-	 * @returnthe number of the tweets that should be considered as "multiple"
+	 * @return returns the number of the tweets that should be considered as "multiple"
 	 */
 	public int numberOfSameTweets(ArrayList<String> tweets){
 		int result = 0;

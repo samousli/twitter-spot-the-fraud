@@ -14,7 +14,7 @@ public class UserDataFetcher {
 	private static final Twitter t = new TwitterFactory(
 			Utils.TwitterConfBuilder.buildConf()).getInstance();
 
-	String fetchUserData(long userId, boolean selectedUser) {
+	String fetchUserData(long userId) {
 
 		UsersResources ur = t.users();
 		User u = null;
@@ -38,9 +38,7 @@ public class UserDataFetcher {
 			}
 
 			// Epipedo B
-			if (selectedUser) {
-				u.getStatusesCount();
-			}
+		    u.getStatusesCount();
 
 		} catch (TwitterException e) {
 			e.printStackTrace();
