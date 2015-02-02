@@ -26,17 +26,8 @@ public class StreamingTweetListener implements StatusListener {
 	}
 
 	@Override
-	public void onStallWarning(StallWarning sw) {
-		// Twitter API keeps a bounded queue of the tweets, if it's filling up
-		// Do something
-		if (sw.getPercentFull() > 50) {
-			discardTweets();
-		}
+	public void onStallWarning(StallWarning sw) {	
 		System.out.println(sw);
-	}
-
-	private void discardTweets() {
-		// ..... If unable to process tweets fast enough discard em
 	}
 
 	@Override

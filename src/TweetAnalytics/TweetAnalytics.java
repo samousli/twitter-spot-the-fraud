@@ -1,7 +1,5 @@
 package TweetAnalytics;
 
-import java.util.Arrays;
-
 /**
  *
  * @author avail
@@ -15,12 +13,20 @@ public class TweetAnalytics {
 
 	public static void main(String[] args) {
 
-		dbm.groupTweetsByUser();
+		// dbm.groupTweetsByUser();
 
-		dbm.countAppearanceByUser();
+		// dbm.countAppearanceByUser();
 
 		int[] qr = dbm.calculateQuartiles();
+		System.out.println("Quartiles:");
+		System.out.println("\tQ1 = " + qr[0] + "\n\tQ2 = " + qr[1]
+				+ "\n\tQ3 = " + qr[2]);
+
+		System.out.println("Choosing random users");
+
+		long[] user_ids = dbm.pickRandomUsersPerQuartile(qr, 10);
 		
-		System.out.println("Q1 = " + qr[0] + ", Q2 = " + qr[1] + ", Q3 = " + qr[2]);
+		new TwitterUserTracker(user_ids);
+
 	}
 }

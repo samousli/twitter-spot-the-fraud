@@ -7,7 +7,10 @@ package TweetAnalytics;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,6 +22,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoURI;
+import com.mongodb.util.JSON;
 
 /**
  *
@@ -123,7 +127,7 @@ public class DBManager {
 	}
 
 	public int[] calculateQuartiles() {
-		
+
 		long c = db.getCollection("users").getCount();
 		System.out.println("Document count: " + c);
 		long first_halve = c / 4, second_halve = c / 2, third_halve = 3 * c / 4;
@@ -132,17 +136,17 @@ public class DBManager {
 		Cursor users = db.getCollection("users").find()
 				.sort(new BasicDBObject("frequency", 1));
 		// boolean even = (c % 2 == 0);
-		
+
 		while (index++ < first_halve)
 			users.next();
 		System.out.println("ch1: " + index);
 		q1 = (int) users.next().get("frequency");
-		
+
 		while (index++ < second_halve)
 			users.next();
 		System.out.println("ch2: " + index);
 		q2 = (int) users.next().get("frequency");
-		
+
 		while (index++ < third_halve)
 			users.next();
 		System.out.println("ch3: " + index);
@@ -151,8 +155,40 @@ public class DBManager {
 		return new int[] { q1, q2, q3 };
 	}
 
+	public long[] pickRandomUsersPerQuartile(int[] quartiles, int num_users) {
+		long[] user_ids = new long[num_users * 4];
+		long c = db.getCollection("users").getCount();
+		int qr = (int) (0.25 * c);
+		Random n = new Random(Calendar.getInstance().getTimeInMillis());
+		for (int q = 0; q < 4; q++) {
+			for (int i = 0; i < num_users; i++) {
+				int l = (int) (q * qr) + n.nextInt(qr);
+				// System.out.println(q + " " + c + " " + l);
+				DBObject e = db.getCollection("users").find()
+						.sort(new BasicDBObject("frequency", 1)).limit(-1)
+						.skip(l).next();
+				e.put("quartile", q);
+				db.getCollection("chosen_users").insert(e);
+				if (e.get("_id") instanceof Long)
+					user_ids[(int)(q * num_users + i)] = (Long) e.get("_id");
+				else if (e.get("_id") instanceof Integer)
+					user_ids[(int)(q * num_users + i)] = ((Integer) e.get("_id")).longValue();
+			}
+		}
+		return user_ids;
+	}
+
 	public DBCollection getTweets() {
 		return db.getCollection("tweets");
+	}
+
+	public void insertTweet(String json) {
+		DBObject ob = (DBObject) JSON.parse(json);
+		db.getCollection("chosen_user_tweets").insert(ob);
+	}
+
+	public long tweetCount() {
+		return db.getCollection("chosen_user_tweets").getCount();
 	}
 
 }
