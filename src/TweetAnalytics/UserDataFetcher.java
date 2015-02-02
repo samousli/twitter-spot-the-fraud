@@ -7,6 +7,9 @@ import java.util.Date;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.User;
+import twitter4j.api.UsersResources;
 public class UserDataFetcher {
 	
 	
@@ -36,82 +39,6 @@ public class UserDataFetcher {
 				age++;
 			}
 			
-			//calculate the age of the account
-			long time1 = creationDate.getTime();
-			long time2 = creationDate.getTime();
-			// Epipedo B
-			if(selectedUser){
-				u.getStatusesCount();
-			}
-			
-			
-			
-			
-		} catch (TwitterException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Twitter API stopped while fetching user data.");
-		}		
-		return t.toString();
-	}
-	
-}
-			long timeDifference = time2 - time1;
-			float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-			int age = (int)daysDifference;
-			if (daysDifference % 10 >= 5){
-				age++;
-			}
-			
-			// Epipedo B
-			if(selectedUser){
-				u.getStatusesCount();
-			}
-			
-			
-			
-			
-		} catch (TwitterException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Twitter API stopped while fetching user data.");
-		}		
-		return t.toString();
-	}
-	
-}
-			long timeDifference = time2 - time1;
-			float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-			int age = (int)daysDifference;
-			if (daysDifference % 10 >= 5){
-				age++;
-			}
-			
-			// Epipedo B
-			if(selectedUser){
-				u.getStatusesCount();
-			}
-			
-			
-			
-			
-		} catch (TwitterException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Twitter API stopped while fetching user data.");
-		}		
-		return t.toString();
-	}
-	
-}getTime(); //current
-			
-			//calculate the age of the account
-			long time1 = creationDate.getTime();
-			long time2 = creationDate.getTime();
-			long timeDifference = time2 - time1;
-			float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-			int age = (int)daysDifference;
-			if (daysDifference % 10 >= 5){
-				age++;
-			}
-			
 			// Epipedo B
 			if(selectedUser){
 				u.getStatusesCount();
@@ -129,29 +56,3 @@ public class UserDataFetcher {
 	
 }
 			
-			//calculate the age of the account
-			long time1 = creationDate.getTime();
-			long time2 = creationDate.getTime();
-			long timeDifference = time2 - time1;
-			float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-			int age = (int)daysDifference;
-			if (daysDifference % 10 >= 5){
-				age++;
-			}
-			
-			// Epipedo B
-			if(selectedUser){
-				u.getStatusesCount();
-			}
-			
-			
-			
-			
-		} catch (TwitterException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Twitter API stopped while fetching user data.");
-		}		
-		return t.toString();
-	}
-	
-}

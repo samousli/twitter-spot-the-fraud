@@ -152,7 +152,7 @@ public class DBManager {
 	}
 
 	public DBCollection getTweets() {
-		return this.tweetsCollection;
+		return db.getCollection("tweets");
 	}
 
 }
