@@ -21,7 +21,8 @@ import twitter4j.TwitterStreamFactory;
  * @author avail
  */
 public class TweetCollector {
-	//public static final String mongoConnectionString = "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
+	// public static final String mongoConnectionString =
+	// "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
 
 	public static final long REPEAT_INTERVAL_IN_SECS = 600;
 
