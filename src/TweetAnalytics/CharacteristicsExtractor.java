@@ -119,8 +119,7 @@ public class CharacteristicsExtractor {
     		DBObject tweet = tweets.get(i);
     		
     		//find the source of the tweet
-    		String source=null;
-    		//TODO:find the source
+    		String source=tweet.get("source").toString();
     		
     		Integer appearances = map.get(source);
     		if(appearances!=null){
