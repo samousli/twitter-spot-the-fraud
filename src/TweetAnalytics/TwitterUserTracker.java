@@ -18,9 +18,9 @@ public class TwitterUserTracker {
 	TwitterStream twitterStream = new TwitterStreamFactory(
 			Utils.TwitterConfBuilder.buildConf()).getInstance();
 
-	public TwitterUserTracker(long [] user_ids) {
+	public TwitterUserTracker(long[] user_ids) {
 		twitterStream.addListener(new UserFeedListener());
-		
+
 		FilterQuery fq = new FilterQuery(user_ids);
 		twitterStream.filter(fq);
 
@@ -33,7 +33,8 @@ public class TwitterUserTracker {
 		while (!s.equals("exit") && !s.equals("q")) {
 			s = reader.nextLine().trim().toLowerCase();
 			if (s.equals("count") || s.equals("c")) {
-				System.out.println("Count:\t" + TweetAnalytics.dbm.tweetCount());
+				System.out
+						.println("Count:\t" + TweetAnalytics.dbm.tweetCount());
 			}
 		}
 	}
@@ -44,7 +45,7 @@ public class TwitterUserTracker {
 		public void onStatus(Status status) {
 			// TODO Auto-generated method stub
 			String json = TwitterObjectFactory.getRawJSON(status);
-			TweetCollector.dbm.insertTweet(json);
+			TweetAnalytics.dbm.insertTweet(json);
 		}
 
 		@Override

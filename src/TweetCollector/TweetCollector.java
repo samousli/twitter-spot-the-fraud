@@ -102,11 +102,12 @@ class TrendTrackerUpdater extends TimerTask {
 		// (e.g. ‘the twitter’ equals (the AND twitter),
 		// and ‘the,twitter’ equals (the OR twitter).
 		String[] track = TrendList.getInstance().getNewTrendTracker();
-		String single = Arrays.asList(track).toString().replace("[", "")
+		// Turn the array into a single string, seems to work better.
+		String str = Arrays.asList(track).toString().replace("[", "")
 				.replace("]", "");
 		System.out.println("Tracking:");
-		System.out.println("\t" + single);
-		fq.track(new String[] { single });
+		System.out.println("\t" + str);
+		fq.track(new String[] { str });	
 
 		// The default access level allows up to 200 track keywords
 		twitterStream.filter(fq);

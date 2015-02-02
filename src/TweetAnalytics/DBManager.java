@@ -169,8 +169,10 @@ public class DBManager {
 						.skip(l).next();
 				e.put("quartile", q);
 				db.getCollection("chosen_users").insert(e);
-
-				user_ids[q * num_users + i] = (long) e.get("_id"); // User id
+				if (e.get("_id") instanceof Long)
+					user_ids[(int)(q * num_users + i)] = (Long) e.get("_id");
+				else if (e.get("_id") instanceof Integer)
+					user_ids[(int)(q * num_users + i)] = ((Integer) e.get("_id")).longValue();
 			}
 		}
 		return user_ids;
