@@ -47,5 +47,75 @@ public class UserDataFetcher {
 		}
 		return t.toString();
 	}
+	
+	public int getNumberOfFollowers(long userId){
+		UsersResources ur = t.users();
+		User u = null;
+		try {
+			u = ur.showUser(userId);
+			return u.getFollowersCount();
+
+		} catch (TwitterException e) {
+			e.printStackTrace();
+			throw new RuntimeException(
+					"Twitter API stopped while fetching user data.");
+		}
+	}
+	
+	public int getNumberOfFriends(long userId){
+		UsersResources ur = t.users();
+		User u = null;
+		try {
+			u = ur.showUser(userId);
+			return u.getFriendsCount();
+
+		} catch (TwitterException e) {
+			e.printStackTrace();
+			throw new RuntimeException(
+					"Twitter API stopped while fetching user data.");
+		}
+	}
+	
+	public int getAccountAge(long userId){
+		UsersResources ur = t.users();
+		User u = null;
+		try {
+			u = ur.showUser(userId);
+			
+			Date creationDate = u.getCreatedAt();// created
+			Date currentDate = Calendar.getInstance().getTime(); // current
+
+			// calculate the age of the account
+			long time1 = creationDate.getTime();
+			long time2 = creationDate.getTime();
+			long timeDifference = time2 - time1;
+			float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+			int age = (int) daysDifference;
+			if (daysDifference % 10 >= 5) {
+				age++;
+			}
+			return age;
+
+		} catch (TwitterException e) {
+			e.printStackTrace();
+			throw new RuntimeException(
+					"Twitter API stopped while fetching user data.");
+		}
+	}
+	
+	public int getStatusesCount(long userId){
+		UsersResources ur = t.users();
+		User u = null;
+		try {
+			u = ur.showUser(userId);
+			
+			return u.getStatusesCount();
+
+		} catch (TwitterException e) {
+			e.printStackTrace();
+			throw new RuntimeException(
+					"Twitter API stopped while fetching user data.");
+		}
+	}
 
 }
