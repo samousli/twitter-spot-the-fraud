@@ -32,7 +32,7 @@ public class TweetAnalytics {
 		//System.out.println("Choosing random users");
 		
 		// Sta grigora gia na treksei se sena xwris db connection
-		long[] user_ids = dbm.pickUsersPerQuartile("users_backup","chosen_users", new int[] {1,1,1,2}, 10);
+		long[] user_ids = dbm.fetchChosenUsers("chosen_users");
 		
 		new TwitterUserTracker(user_ids);
 

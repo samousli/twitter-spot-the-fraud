@@ -153,7 +153,7 @@ public class DBManager {
 				for (String tw : tweets)
 					if (tw.toLowerCase().contains(tr.toLowerCase())) {
 						++freq;
-						break; // If you find a tweet matching the topic, 
+						break; // If you find a tweet matching the topic,
 								// don't check the rest
 					}
 			}
@@ -233,7 +233,7 @@ public class DBManager {
 			Random n = new Random(Calendar.getInstance().getTimeInMillis());
 			for (int q = 0; q < 4; q++) {
 				for (int i = 0; i < num_users; i++) {
-					
+
 					// System.out.println(q + " " + c + " " + l);
 					DBObject e;
 					do {
@@ -252,6 +252,20 @@ public class DBManager {
 								.get("_id")).longValue();
 				}
 			}
+		}
+		return user_ids;
+	}
+
+	public long[] fetchChosenUsers(String col) {
+		long[] user_ids = new long[(int) db.getCollection(col).count()];
+		Cursor cursor = db.getCollection(col).find();
+		int i = 0;
+		while (cursor.hasNext()) {
+			DBObject e = cursor.next();
+			if (e.get("_id") instanceof Long)
+				user_ids[i++] = (Long) e.get("_id");
+			else if (e.get("_id") instanceof Integer)
+				user_ids[i++] = ((Integer) e.get("_id")).longValue();
 		}
 		return user_ids;
 	}
