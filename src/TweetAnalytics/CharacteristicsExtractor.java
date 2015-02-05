@@ -32,7 +32,7 @@ public class CharacteristicsExtractor {
 	/**
 	 *
 	 * @param tweets list of all the tweets a user has posted
-	 * @returnthe number of the tweets that should be considered as "multiple"
+	 * @return returns the number of the tweets that should be considered as "multiple"
 	 */
 	public int numberOfSameTweets(ArrayList<String> tweets){
 		int result = 0;
@@ -64,6 +64,57 @@ public class CharacteristicsExtractor {
 		return result;
 	}
 	
+	private int calcOthersRetweets(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			count += (int)tweet.get("retweet_count");
+		}
+		
+		return count;
+	}
+	
+	private int numOfTweetsContainingHashtags(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			DBObject[] ht = (DBObject[])tweet.get("hashtags");
+			if(ht.length>0){
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	private int numOfHashtags(ArrayList<DBObject> tweets){
+		int sum=0;
+		for(DBObject tweet:tweets){
+			DBObject[] h = (DBObject[])tweet.get("hashtags");
+			sum += h.length;
+		}
+		return sum;
+	}
+	
+	private int numOfTweetsContainingUrls(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			DBObject[] ut = (DBObject[])tweet.get("urls");
+			if(ut.length>0){
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	private int numOfMentions(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			DBObject[] t = (DBObject[])tweet.get("user_mentions");
+			if(t.length>0){
+				count++;
+			}
+		}
+		return count;
+	}
+	
 	/**
 	 * 
 	 * @param tweet an unfiltered tweet
@@ -86,7 +137,15 @@ public class CharacteristicsExtractor {
 				it.remove();
 			}
 		}
-		return null;
+		StringBuilder sb=new StringBuilder();
+		for(String token:tokens){
+			sb.append(token);
+			sb.append(" ");
+		}
+		sb.deleteCharAt(sb.length()-1);
+		String string=sb.toString().trim();
+		
+		return string;
 	}
 	
 	
