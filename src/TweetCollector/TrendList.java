@@ -22,7 +22,7 @@ import twitter4j.Trend;
  */
 public class TrendList {
 
-	public static final int TIMEOUT_IN_MINS = 120;
+	public static final int TIMEOUT_IN_MINS = 80;
 
 	private final ConcurrentMap<Trend, TrendData> trends = new ConcurrentHashMap<>();
 

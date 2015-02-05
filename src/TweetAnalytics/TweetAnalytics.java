@@ -13,18 +13,26 @@ public class TweetAnalytics {
 
 	public static void main(String[] args) {
 
-		// dbm.groupTweetsByUser();
+		//dbm.groupTweetsByUser();
+		
+		// Use to remove the frequency field for all documents
+		// 	db.users.update({},{$unset : {frequency: "" }}, {multi: true}) 
+		
+		// Use to query the documents which don't contain the frequency field
+		//	db.users.find({ "frequency" : { $exists : true } })
 
-		// dbm.countAppearanceByUser();
 
-		int[] qr = dbm.calculateQuartiles();
-		System.out.println("Quartiles:");
-		System.out.println("\tQ1 = " + qr[0] + "\n\tQ2 = " + qr[1]
-				+ "\n\tQ3 = " + qr[2]);
+		//dbm.countFrequencyByUser();
 
-		System.out.println("Choosing random users");
+		//int[] qr = dbm.calculateQuartiles("users_backup");
+		//System.out.println("Quartiles:");
+		//System.out.println("\tQ1 = " + qr[0] + "\n\tQ2 = " + qr[1]
+		//		+ "\n\tQ3 = " + qr[2]);
 
-		long[] user_ids = dbm.pickRandomUsersPerQuartile(qr, 10);
+		//System.out.println("Choosing random users");
+		
+		// Sta grigora gia na treksei se sena xwris db connection
+		long[] user_ids = dbm.pickUsersPerQuartile("users_backup","chosen_users", new int[] {1,1,1,2}, 10);
 		
 		new TwitterUserTracker(user_ids);
 
