@@ -11,7 +11,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/MongoDriver/mongo-java-driver-2.12.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/MongoDriver/mongo-java-driver-2.12.0.jar"/>
-	<classpathentry kind="lib" path="lib/MongoDriver/mongo-java-driver-2.6.5-javadoc.jar"/>
-	<classpathentry kind="lib" path="lib/MongoDriver/mongo-java-driver-2.6.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
