@@ -83,13 +83,13 @@ public class DBManager {
 	}
 
 	@SuppressWarnings("deprecation")
-	public void initUserCollection() {
-		if (db.collectionExists("users"))
-			throw new RuntimeException(
-					"Mongo: Users collection already exists.");
+	public void initUserCollection(String usr_col) {
+		if (db.collectionExists(usr_col))
+			//throw new RuntimeException(
+			System.out.println("Mongo: Users collection already exists.");
 
-		db.getCollection("users").drop();
-		db.getCollection("users").ensureIndex(
+		db.getCollection(usr_col).drop();
+		db.getCollection(usr_col).ensureIndex(
 				new BasicDBObject("tweets", "text"));
 	}
 

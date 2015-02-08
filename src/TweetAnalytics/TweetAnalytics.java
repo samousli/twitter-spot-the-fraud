@@ -1,9 +1,13 @@
 package TweetAnalytics;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
+
+import twitter4j.User;
 
 import com.mongodb.AggregationOptions;
 import com.mongodb.BasicDBList;
@@ -24,7 +28,8 @@ public class TweetAnalytics {
 
 	public static void main(String[] args) {
 
-		// dbm.groupTweetsByUser();
+		groupTweetsByUser("users", "tweets");
+		runUserAnalytics("users");
 
 		// Use to remove the frequency field for all documents
 		// db.users.update({},{$unset : {frequency: "" }}, {multi: true})
@@ -32,7 +37,7 @@ public class TweetAnalytics {
 		// Use to query the documents which don't contain the frequency field
 		// db.users.find({ "frequency" : { $exists : true } })
 
-		// dbm.countFrequencyByUser();
+		// countFrequencyByUser("users_backup", "trends");
 
 		// int[] qr = dbm.calculateQuartiles("users_backup");
 		// System.out.println("Quartiles:");
@@ -46,17 +51,55 @@ public class TweetAnalytics {
 		// new TwitterUserTracker(user_ids);
 
 		// 4a
-		generateBasicUserStats();
+		// generateBasicUserStats();
 
+	}
+
+	private static void runUserAnalytics(String usr_col) {
+		Cursor usrs = dbm.getCollection(usr_col).find();
+		while (usrs.hasNext()) {
+			DBObject usr = usrs.next();
+			long id = fetchLong(usr, "_id");
+			float ff_ratio = ((float) (fetchLong(usr, "followers")) / fetchLong(
+					usr, "friends"));
+			int age = getAccountAge((String) usr.get("created_at"));
+			
+			System.out.println(id + "\t" + ff_ratio + "\t" + age);
+			
+			/**
+			  	{ '_id' : id }, 
+				{ $set : { 'ff_ratio' : ff_ratio, 'age' : age } } 
+			*/
+			dbm.getCollection(usr_col).update(
+					new BasicDBObject("_id", id),
+					new BasicDBObject("$set", new BasicDBObject("ff_ratio",
+							ff_ratio).append("age", age)));
+		}
+		usrs.close();
+	}
+
+	public static int getAccountAge(String created_at) {
+		long timeDifference = Calendar.getInstance().getTimeInMillis()
+				- Date.parse(created_at);
+		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+		
+		return Math.round(daysDifference);
 	}
 
 	public static void generateBasicUserStats() {
 		UserDataFetcher fetcher = new UserDataFetcher();
 
-		Cursor users = dbm.getCollection("users").find();
-		while (users.hasNext())
-			fetcher.fetchBasicUserData(fetchLong(users.next(), "_id"));
-
+		Cursor users = dbm.getCollection("users_backup").find();
+		long[] ids = new long[100];
+		int i = 0;
+		while (users.hasNext()) {
+			ids[i++] = (fetchLong(users.next(), "_id"));
+			if (ids.length == 100 || !users.hasNext()) {
+				fetcher.fetchBasicUserData(ids);
+				ids = new long[100];
+				i = 0;
+			}
+		}
 		users.close();
 	}
 
@@ -65,26 +108,30 @@ public class TweetAnalytics {
 	 * '$id'}, count: { $sum: 1 }} }, { $sort: {'count':-1} } ])
 	 */
 	@SuppressWarnings("deprecation")
-	public static void groupTweetsByUser() {
+	public static void groupTweetsByUser(String user_col, String tweet_col) {
 
-		dbm.initUserCollection();
+		dbm.initUserCollection(user_col);
 		// In order to avoid deleting potentially large amounts of data..again
 
 		List<DBObject> pipeline = new ArrayList<>();
-
-		// Group by user id and keep tweet texts and ids
-		// Query: { $group: {_id : '$user.id', tweets : {
-		// $push: '$text' },
-		// count: { $sum: 1 } } };
-
+		/*
+		 * Group by user id and keep tweet texts and ids Query: { $group: { _id
+		 * : '$user.id', tweets : { $push: '$text' }, count: { $sum: 1 } friends
+		 * : { $first : $user.friends_count } followers : { $first :
+		 * $user.followers_count } ff_ratio : { $first : $user.followers_count /
+		 * $user.friends_count } age : { $first : current_time -
+		 * $user.created_at } } };
+		 */
 		DBObject groupByUser = new BasicDBObject("$group", new BasicDBObject(
-				"_id", "$user.id").append("tweets",
-				new BasicDBObject("$push", "$text")).append("count",
-				new BasicDBObject("$sum", 1)));
-
-		// Sort by tweet count
-		// DBObject sortByCount = new BasicDBObject("$sort", new BasicDBObject(
-		// "count", -1));
+				"_id", "$user.id")
+				.append("tweets", new BasicDBObject("$push", "$text"))
+				.append("count", new BasicDBObject("$sum", 1))
+				.append("friends",
+						new BasicDBObject("$first", "$user.friends_count"))
+				.append("followers",
+						new BasicDBObject("$first", "$user.followers_count"))
+				.append("created_at",
+						new BasicDBObject("$first", "$user.created_at")));
 
 		// Filter the users with single a tweet out
 		// { $match : { "count" : { $gt : 1 } } }
@@ -92,11 +139,10 @@ public class TweetAnalytics {
 				"count", new BasicDBObject("$gt", 1)));
 
 		// Output to new table
-		DBObject outputToNewCollection = new BasicDBObject("$out", "users");
+		DBObject outputToNewCollection = new BasicDBObject("$out", user_col);
 
 		pipeline.add(groupByUser);
-		// pipeline.add(sortByCount);
-		// pipeline.add(filterUsers);
+		pipeline.add(filterUsers);
 		pipeline.add(outputToNewCollection);
 
 		// Disk use is necessary for collections resulting in more than 100mb of
@@ -104,7 +150,7 @@ public class TweetAnalytics {
 		AggregationOptions opts = AggregationOptions.builder()
 				.allowDiskUse(true).build();
 
-		dbm.getCollection("tweets").aggregate(pipeline, opts);
+		dbm.getCollection(tweet_col).aggregate(pipeline, opts);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -112,9 +158,9 @@ public class TweetAnalytics {
 	 * Counts the number of trending topics each user appears in and saves it as a
 	 * field in the user collection
 	 */
-	public static void countFrequencyByUser() {
+	public static void countFrequencyByUser(String user_col, String trend_col) {
 
-		Cursor trends = dbm.getCollection("trends").find();
+		Cursor trends = dbm.getCollection(trend_col).find();
 
 		while (trends.hasNext()) {
 			// db.users.update({ // $text : { $search : "\"<Trend>\"", $language
@@ -129,7 +175,7 @@ public class TweetAnalytics {
 			DBObject updateOp = new BasicDBObject("$inc", new BasicDBObject(
 					"frequency", 1));
 
-			dbm.getCollection("users").update(query, updateOp, false, true);
+			dbm.getCollection(user_col).update(query, updateOp, false, true);
 		}
 	}
 

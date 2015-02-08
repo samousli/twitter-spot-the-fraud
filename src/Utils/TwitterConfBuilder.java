@@ -21,6 +21,8 @@ public class TwitterConfBuilder {
 		conf.setOAuthConsumerSecret(requestSecretString);
 		conf.setOAuthAccessToken(accessTokenString);
 		conf.setOAuthAccessTokenSecret(accessSecretString);
+		conf.setHttpRetryIntervalSeconds(60);
+		conf.setGZIPEnabled(true);
 
 		return conf.build();
 	}
