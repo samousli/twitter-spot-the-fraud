@@ -3,6 +3,8 @@ package TweetAnalytics;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -242,20 +244,28 @@ public class CharacteristicsExtractor {
         return matcher.matches();
 	}
 	
-	public void extract(long userID){
+	private static int getAccountAge(String created_at) {
+		long timeDifference = Calendar.getInstance().getTimeInMillis()
+				- Date.parse(created_at);
+		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+		
+		return Math.round(daysDifference);
+	}
+	
+	private void extract(long userID){
 		//TODO: get all the tweets from user with id = userID
 		
 		//create the tweets arraylist
 		ArrayList<DBObject> tweets = new ArrayList<>();
 		
 		//extract the characteristics
-		int numberOfFriends=0, numberOfFollowers=0;//TODO:GET THESE VALUES
+		int numberOfFriends=0, numberOfFollowers=0;//***
 		float ffRatio = (float)numberOfFollowers/numberOfFriends;
-		int accountAge;//***
-		float numberOfRetweetsPerTweet;//***
+		int accountAge=0;//***
 		int numberOfTweets = tweets.size();
-		int numberOfRetweets;//***
-		int numberOfReplies;//***
+		int numberOfRetweets=0;//***
+		float numberOfRetweetsPerTweet=0;//***
+		int numberOfReplies=0;//***
 		int numberOfMentions = this.numOfMentions(tweets);
 		int numberOfOthersRetweets = this.numOfOthersRetweets(tweets);
 		int numberOfHashtags = this.numOfHashtags(tweets);
@@ -264,10 +274,20 @@ public class CharacteristicsExtractor {
 		int numberOfCopies = this.numberOfSameTweets(tweets);
 		String mostUsedSource = this.findMostUsedSource(tweets);
 		int numberOfUniqueUrls = this.numOfUniqueUrls(tweets);
-		int numberOfUniqueDomains;//***
+		int numberOfUniqueDomains=0;//***
 		
 		//insert them in the database
-		this.cdb.insertSelectedUser(userID, numberOfFollowers, numberOfFriends, accountAge, numberOfTweets, numberOfRetweets, numberOfReplies, numberOfMentions, numberOfOthersRetweets, numberOfHashtags, numberOfHashtagTweets, numberOfUrlTweets, numberOfCopies, mostUsedSource, numberOfUniqueUrls, numberOfUniqueDomains)
+		this.cdb.insertSelectedUser(userID, numberOfFollowers, numberOfFriends, accountAge, numberOfTweets, numberOfRetweets, numberOfReplies, numberOfMentions, numberOfOthersRetweets, numberOfHashtags, numberOfHashtagTweets, numberOfUrlTweets, numberOfCopies, mostUsedSource, numberOfUniqueUrls, numberOfUniqueDomains);
 		
+	}
+	
+	public void runExtractor(){
+		//get the chosen users' ids
+		long[] chosenUsersIds = this.tdbm.fetchChosenUsers("chosen_users");
+		
+		//extract the characteristics of each one
+		for(long userID:chosenUsersIds){
+			this.extract(userID);
+		}
 	}
 }
