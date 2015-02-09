@@ -7,16 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.MongoURI;
-import com.mongodb.WriteResult;
-import com.mongodb.util.JSON;
 
 public class CharacteristicsExtractor {
 	private CharacteristicsDB cdb;
