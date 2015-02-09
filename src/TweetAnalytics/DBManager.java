@@ -73,9 +73,9 @@ public class DBManager {
 	//	return db.getCollection("tweets");
 	//}
 
-	public void insertTweet(String json) {
+	public void insertDoc(String col, String json) {
 		DBObject ob = (DBObject) JSON.parse(json);
-		db.getCollection("chosen_user_tweets").insert(ob);
+		db.getCollection(col).insert(ob);
 	}
 
 	public long tweetCount() {

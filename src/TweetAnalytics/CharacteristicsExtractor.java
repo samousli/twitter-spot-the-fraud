@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Utils.HelperFunctions;
+import Utils.Helpers;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -283,7 +283,7 @@ public class CharacteristicsExtractor {
 		int numberOfFriends = (int) user.get("friends_count");
 		int numberOfFollowers = (int) user.get("followers_count");
 		float ffRatio = (float) numberOfFollowers / numberOfFriends;
-		int accountAge = HelperFunctions.getAccountAge((String) user
+		int accountAge = Helpers.getAccountAge((String) user
 				.get("created_at"));
 		int numberOfTweets = tweets.size();
 		int numberOfRetweets = this.numOfRetweets(tweets);// ??

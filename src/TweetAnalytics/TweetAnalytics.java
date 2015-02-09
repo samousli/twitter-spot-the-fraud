@@ -5,8 +5,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
-import Utils.HelperFunctions;
+import Utils.Helpers;
 
 import com.mongodb.AggregationOptions;
 import com.mongodb.BasicDBObject;
@@ -20,14 +21,61 @@ import com.mongodb.DBObject;
 public class TweetAnalytics {
 
 	public static final DBManager dbm = new DBManager();
-	
-	public static void main(String[] args) {
-		// groupTweetsByUser("users", "tweets");
 
-		// groupTweetsByUser("extracted_users", "chosen_user_tweets");
-		// runBasicAnalytics("extracted_users");
-		
-		runAdvancedAnalytics("chosen_users", "chosen_user_tweets_filtered");
+	public static void main(String[] args) {
+
+		// Wait for console input
+		System.out.println("1) Group tweets by user.");
+		System.out.println("2) Generate basic statistics(4a).");
+		System.out.println("3) Calculate quartiles.");
+		System.out.println("4) Track selected users.");
+		System.out.println("5) Generate advanced statistics(4b).");
+
+		Scanner reader = new Scanner(System.in);
+		int c = reader.nextInt();
+
+		switch (c) {
+		case 1:
+			System.out.println("Grouping tweets by user..");
+			groupTweetsByUser("users", "tweets");
+			System.out.println("Done.");
+			break;
+		case 2:
+			System.out.println("Generating basic statistics..");
+			runBasicAnalytics("users");
+			countFrequencyByUser("users", "trends");
+			System.out.println("Done.");
+			break;
+		case 3:
+			System.out.println("Calculating quartiles..");
+			int[] qr = calculateQuartiles("users");
+			System.out.println("Done.");
+			System.out.println("\tQ1 = " + qr[0] + "\n\tMedian = " + qr[1]
+					+ "\n\tQ3 = " + qr[2]);
+			break;
+		case 4:
+			long[] user_ids = dbm.fetchChosenUsers("chosen_users");
+			if (user_ids.length == 0) {
+				System.out.println("No chosen users, choosing now");
+				int[] qr1 = calculateQuartiles("users");
+				user_ids = pickUsersPerQuartile("users", "chosen_users", qr1,
+						10);
+			}
+			new TwitterUserTracker("chosen_user_tweets", user_ids);
+			System.out.println("Done.");
+			break;
+		case 5:
+			System.out.println("Generating advanced statistics..");
+			filterTweetsByUser("chosen_users", "chosen_user_tweets",
+					"chosen_user_tweets_filtered");
+			runAdvancedAnalytics("chosen_users", "chosen_user_tweets_filtered");
+			System.out.println("Done.");
+			break;
+		default:
+			System.err.println("Invalid choice.");
+		}
+
+		reader.close();
 
 		// Use to remove the frequency field for all documents
 		// db.users.update({},{$unset : {frequency: "" }}, {multi: true})
@@ -35,32 +83,16 @@ public class TweetAnalytics {
 		// Use to query the documents which don't contain the frequency field
 		// db.users.find({ "frequency" : { $exists : true } })
 
-		// countFrequencyByUser("users_backup", "trends");
-
-		// int[] qr = dbm.calculateQuartiles("users_backup");
-		// System.out.println("Quartiles:");
-		// System.out.println("\tQ1 = " + qr[0] + "\n\tQ2 = " + qr[1]
-		// + "\n\tQ3 = " + qr[2]);
-
-		// System.out.println("Choosing random users");
-
-		// long[] user_ids = dbm.fetchChosenUsers("chosen_users");
-
-		// new TwitterUserTracker(user_ids);
-
-		// 4a
-		// generateBasicUserStats();
-
 	}
 
 	private static void runBasicAnalytics(String usr_col) {
 		Cursor usrs = dbm.getCollection(usr_col).find();
 		while (usrs.hasNext()) {
 			DBObject usr = usrs.next();
-			long id = fetchLong(usr, "_id");
-			float ff_ratio = ((float) (fetchLong(usr, "followers")) / fetchLong(
-					usr, "friends"));
-			int age = HelperFunctions.getAccountAge((String) usr.get("created_at"));
+			long id = Helpers.fetchLong(usr, "_id");
+			float ff_ratio = ((float) (Helpers.fetchLong(usr, "followers")) / Helpers
+					.fetchLong(usr, "friends"));
+			int age = Helpers.getAccountAge((String) usr.get("created_at"));
 
 			System.out.println(id + "\t" + ff_ratio + "\t" + age);
 
@@ -81,14 +113,12 @@ public class TweetAnalytics {
 		Cursor usrs = dbm.getCollection(usr_col).find();
 		int i = 0;
 		while (usrs.hasNext()) {
-			e.extract(tweet_col, fetchLong(usrs.next(), "_id"));
+			e.extract(tweet_col, Helpers.fetchLong(usrs.next(), "_id"));
 			i++;
 		}
 		System.out.println(i + " calls.");
 		usrs.close();
 	}
-
-
 
 	/*
 	 * db.tweets.aggregate([ { $group: {_id : '$user.id', tweet_id : {$push:
@@ -154,7 +184,7 @@ public class TweetAnalytics {
 			// { $inc : { frequency: 1 }}, // { multi : true });
 			// Note: Escaping hyphens for phrase search
 			String s = (String) trends.next().get("name");
-			System.out.println(s);
+			// System.out.println(s);
 			DBObject query = new BasicDBObject("$text", new BasicDBObject(
 					"$search", "\"" + s + "\"").append("$language", "none"));
 
@@ -179,39 +209,21 @@ public class TweetAnalytics {
 
 		while (index++ < first_halve)
 			users.next();
-		System.out.println("ch1: " + index);
-		q1 = (int) fetchLong(users.next(), "frequency");
+		// System.out.println("ch1: " + index);
+		q1 = (int) Helpers.fetchLong(users.next(), "frequency");
 
 		while (index++ < second_halve)
 			users.next();
-		System.out.println("ch2: " + index);
-		q2 = (int) fetchLong(users.next(), "frequency");
+		// System.out.println("ch2: " + index);
+		q2 = (int) Helpers.fetchLong(users.next(), "frequency");
 
 		while (index++ < third_halve)
 			users.next();
-		System.out.println("ch3: " + index);
-		q3 = (int) fetchLong(users.next(), "frequency");
+		// System.out.println("ch3: " + index);
+		q3 = (int) Helpers.fetchLong(users.next(), "frequency");
 
 		users.close();
 		return new int[] { q1, q2, q3 };
-	}
-
-	/**
-	 * If there is no frequency field (text doesn't belong to any trend(wonders
-	 * of twitter API)) return 0
-	 * 
-	 * @param usr
-	 * @return frequency value
-	 */
-	static long fetchLong(DBObject o, String field) {
-		if (o.get(field) == null)
-			return 0;
-		if (o.get(field) instanceof Long)
-			return (long) o.get(field);
-		if (o.get(field) instanceof Integer)
-			return (long) ((Integer) o.get(field)).longValue();
-
-		throw new RuntimeException("MONGO fetchLong: Can't cast value");
 	}
 
 	private static long[] pickUsersPerQuartile(String inCol, String outCol,
@@ -247,25 +259,28 @@ public class TweetAnalytics {
 					} while (e.get("frequency") == null);
 					e.put("quartile", q);
 					dbm.getCollection(outCol).insert(e);
-					user_ids[(int) (q * num_users + i)] = fetchLong(e, "_id");
+					user_ids[(int) (q * num_users + i)] = Helpers.fetchLong(e,
+							"_id");
 				}
 			}
 		}
 		return user_ids;
 	}
-	
-	
-	// Due to most likely retweets retaining their original user_ids..had to filter some out.
-	private static void filterByUserIDs() {
-		Cursor e = dbm.getCollection("chosen_users").find();
-		
+
+	// Due to most likely retweets retaining their original user_ids..had to
+	// filter some out.
+	private static void filterTweetsByUser(String user_col, String tweet_col,
+			String result_col) {
+		Cursor e = dbm.getCollection(user_col).find();
+
 		while (e.hasNext()) {
-			Cursor t = dbm.getCollection("chosen_user_tweets").find(
-					new BasicDBObject("user.id", fetchLong(e.next(), "_id")));
+			Cursor t = dbm.getCollection(tweet_col).find(
+					new BasicDBObject("user.id", Helpers.fetchLong(e.next(),
+							"_id")));
 			while (t.hasNext()) {
-				dbm.getCollection("users_filtered").insert(t.next());
+				dbm.getCollection(result_col).insert(t.next());
 			}
 		}
 	}
-	
+
 }
