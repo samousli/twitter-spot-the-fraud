@@ -37,7 +37,7 @@ public class TweetAnalytics {
 		// Use to query the documents which don't contain the frequency field
 		// db.users.find({ "frequency" : { $exists : true } })
 
-		// countFrequencyByUser("users_backup", "trends");
+		// countFrequencto yByUser("users_backup", "trends");
 
 		// int[] qr = dbm.calculateQuartiles("users_backup");
 		// System.out.println("Quartiles:");

@@ -42,7 +42,7 @@ public class CharacteristicsDB {
 	}
 
 	//
-	public void insertSimpleUser(int id, int numberOfFollowers,
+	public void insertSimpleUser(long id, int numberOfFollowers,
 			int numberOfFriends, int accountAge) {
 		BasicDBObject characteristics = new BasicDBObject();
 		characteristics.put("user_id", id);
@@ -56,7 +56,7 @@ public class CharacteristicsDB {
 		this.allUsersCollection.insert(characteristics);
 	}
 
-	public void insertSelectedUser(int id, int numberOfFollowers,
+	public void insertSelectedUser(long id, int numberOfFollowers,
 			int numberOfFriends, int accountAge, int numberOfTweets,
 			int numberOfRetweets, int numberOfReplies, int numberOfMentions,
 			int numberOfOthersRetweets, int numberOfHashtags,
@@ -71,7 +71,7 @@ public class CharacteristicsDB {
 		characteristics.put("user_id", id);
 		simpleNumbers.put("number_of_followers", numberOfFollowers);
 		simpleNumbers.put("number_of_friends", numberOfFriends);
-		simpleNumbers.put("fraction", (float) numberOfFollowers
+		simpleNumbers.put("ff_ratio", (float) numberOfFollowers
 				/ numberOfFriends);
 		simpleNumbers.put("account_age", accountAge);
 		simpleNumbers.put("number_of_tweets", numberOfTweets);
