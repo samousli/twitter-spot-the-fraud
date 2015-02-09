@@ -1,16 +1,14 @@
 package TweetAnalytics;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import twitter4j.User;
+import Utils.HelperFunctions;
 
 import com.mongodb.AggregationOptions;
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
 import com.mongodb.DBObject;
@@ -21,27 +19,23 @@ import com.mongodb.DBObject;
  */
 public class TweetAnalytics {
 
-	public static final DBManager dbm = new DBManager(); // mongoConnectionString
-
-	// public static final String mongoConnectionString =
-	// "mongodb://pspi:pspi@ds063240.mongolab.com:63240";
-
+	public static final DBManager dbm = new DBManager();
+	
 	public static void main(String[] args) {
-
 		// groupTweetsByUser("users", "tweets");
-		runBasicAnalytics("users");
+
+		// groupTweetsByUser("extracted_users", "chosen_user_tweets");
+		// runBasicAnalytics("extracted_users");
 		
-		
-		groupTweetsByUser("chosen_users", "chosen_user_tweets");
-		runBasicAnalytics("chosen_users");
-		
+		runAdvancedAnalytics("chosen_users", "chosen_user_tweets_filtered");
+
 		// Use to remove the frequency field for all documents
 		// db.users.update({},{$unset : {frequency: "" }}, {multi: true})
 
 		// Use to query the documents which don't contain the frequency field
 		// db.users.find({ "frequency" : { $exists : true } })
 
-		// countFrequencto yByUser("users_backup", "trends");
+		// countFrequencyByUser("users_backup", "trends");
 
 		// int[] qr = dbm.calculateQuartiles("users_backup");
 		// System.out.println("Quartiles:");
@@ -66,7 +60,7 @@ public class TweetAnalytics {
 			long id = fetchLong(usr, "_id");
 			float ff_ratio = ((float) (fetchLong(usr, "followers")) / fetchLong(
 					usr, "friends"));
-			int age = getAccountAge((String) usr.get("created_at"));
+			int age = HelperFunctions.getAccountAge((String) usr.get("created_at"));
 
 			System.out.println(id + "\t" + ff_ratio + "\t" + age);
 
@@ -80,41 +74,21 @@ public class TweetAnalytics {
 		}
 		usrs.close();
 	}
-	
-	private static void runAdvancedAnalytics(String usr_col) {
+
+	private static void runAdvancedAnalytics(String usr_col, String tweet_col) {
 		CharacteristicsExtractor e = new CharacteristicsExtractor(
 				new CharacteristicsDB(), dbm);
 		Cursor usrs = dbm.getCollection(usr_col).find();
+		int i = 0;
 		while (usrs.hasNext()) {
-			e.extract(usrs.next());
-		}	
+			e.extract(tweet_col, fetchLong(usrs.next(), "_id"));
+			i++;
+		}
+		System.out.println(i + " calls.");
 		usrs.close();
 	}
-	
-	private static int getAccountAge(String created_at) {
-		long timeDifference = Calendar.getInstance().getTimeInMillis()
-				- Date.parse(created_at);
-		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
 
-		return Math.round(daysDifference);
-	}
 
-	private static void generateBasicUserStats() {
-		UserDataFetcher fetcher = new UserDataFetcher();
-
-		Cursor users = dbm.getCollection("users_backup").find();
-		long[] ids = new long[100];
-		int i = 0;
-		while (users.hasNext()) {
-			ids[i++] = (fetchLong(users.next(), "_id"));
-			if (ids.length == 100 || !users.hasNext()) {
-				fetcher.fetchBasicUserData(ids);
-				ids = new long[100];
-				i = 0;
-			}
-		}
-		users.close();
-	}
 
 	/*
 	 * db.tweets.aggregate([ { $group: {_id : '$user.id', tweet_id : {$push:
@@ -279,5 +253,19 @@ public class TweetAnalytics {
 		}
 		return user_ids;
 	}
-
+	
+	
+	// Due to most likely retweets retaining their original user_ids..had to filter some out.
+	private static void filterByUserIDs() {
+		Cursor e = dbm.getCollection("chosen_users").find();
+		
+		while (e.hasNext()) {
+			Cursor t = dbm.getCollection("chosen_user_tweets").find(
+					new BasicDBObject("user.id", fetchLong(e.next(), "_id")));
+			while (t.hasNext()) {
+				dbm.getCollection("users_filtered").insert(t.next());
+			}
+		}
+	}
+	
 }

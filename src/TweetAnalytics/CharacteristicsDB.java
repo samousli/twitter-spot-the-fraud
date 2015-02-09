@@ -28,7 +28,7 @@ public class CharacteristicsDB {
 		try {
 			// make the initial connection to the mongoDB
 			Mongo tweetsMongoClient = new Mongo(new MongoURI(conStr));
-			this.db = tweetsMongoClient.getDB("characteristics");
+			this.db = tweetsMongoClient.getDB("twitter_mini");
 		} catch (UnknownHostException ex) {
 			System.err
 					.println("The database could not be initialized because of an UnknownHostException.");

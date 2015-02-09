@@ -69,9 +69,9 @@ public class DBManager {
 		return user_ids;
 	}
 
-	public DBCollection getTweets() {
-		return db.getCollection("tweets");
-	}
+	//public DBCollection getTweets() {
+	//	return db.getCollection("tweets");
+	//}
 
 	public void insertTweet(String json) {
 		DBObject ob = (DBObject) JSON.parse(json);

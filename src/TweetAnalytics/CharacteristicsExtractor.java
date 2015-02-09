@@ -1,5 +1,7 @@
 package TweetAnalytics;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,6 +13,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.management.RuntimeErrorException;
+
+import Utils.HelperFunctions;
+
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.Cursor;
+import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
@@ -23,9 +33,9 @@ public class CharacteristicsExtractor {
 	public CharacteristicsExtractor(CharacteristicsDB cdb, DBManager dbm) {
 		this.cdb = cdb;
 		this.tdbm = dbm;
-		this.tweets = dbm.getTweets();
+		// this.tweets = dbm.getTweets();
 		this.urlPattern = Pattern
-				.compile("<\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]>");
+				.compile("<\\b(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]>");
 	}
 
 	/**
@@ -84,8 +94,8 @@ public class CharacteristicsExtractor {
 		int count = 0;
 		for (DBObject tweet : tweets) {
 			DBObject entities = (DBObject) tweet.get("entities");
-			String[] ht = (String[]) entities.get("hashtags");
-			if (ht.length > 0) {
+			BasicDBList h = (BasicDBList) entities.get("hashtags");
+			if (!h.isEmpty()) {
 				count++;
 			}
 		}
@@ -96,8 +106,8 @@ public class CharacteristicsExtractor {
 		int sum = 0;
 		for (DBObject tweet : tweets) {
 			DBObject entities = (DBObject) tweet.get("entities");
-			String[] h = (String[]) entities.get("hashtags");
-			sum += h.length;
+			BasicDBList h = (BasicDBList) entities.get("hashtags");
+			sum += h.size();
 		}
 		return sum;
 	}
@@ -106,9 +116,8 @@ public class CharacteristicsExtractor {
 		int count = 0;
 		for (DBObject tweet : tweets) {
 			DBObject dbo = (DBObject) tweet.get("entities");
-			DBObject dburl = (DBObject) dbo.get("urls");
-			String[] ut = (String[]) dburl.get("indices");
-			if (ut.length > 0) {
+			BasicDBList dburl = (BasicDBList) dbo.get("urls");
+			if (!dburl.isEmpty()) {
 				count++;
 			}
 		}
@@ -118,8 +127,9 @@ public class CharacteristicsExtractor {
 	private int numOfMentions(ArrayList<DBObject> tweets) {
 		int count = 0;
 		for (DBObject tweet : tweets) {
-			DBObject[] t = (DBObject[]) tweet.get("user_mentions");
-			if (t.length > 0) {
+			DBObject et = (DBObject) tweet.get("entities");
+			BasicDBList t = (BasicDBList) et.get("user_mentions");
+			if (t.size() > 0) {
 				count++;
 			}
 		}
@@ -154,7 +164,7 @@ public class CharacteristicsExtractor {
 		// iterate through the tokens and filter the unwanted ones
 		while (it.hasNext()) {
 			String token = it.next();
-			if ((token.charAt(0) == '@') || (this.isURL(token))) {
+			if (token.startsWith("@") || this.isURL(token)) {
 				it.remove();
 			}
 		}
@@ -163,24 +173,27 @@ public class CharacteristicsExtractor {
 			sb.append(token);
 			sb.append(" ");
 		}
-		sb.deleteCharAt(sb.length() - 1);
+		if (sb.length() > 0)
+			sb.deleteCharAt(sb.length() - 1);
 		String string = sb.toString().trim();
 
 		return string;
 	}
 
-	private int numOfUniqueUrls(ArrayList<DBObject> tweets){
-		int uniqueUrls = 0;
+	private HashSet<String> UniqueUrls(ArrayList<DBObject> tweets) {
 		HashSet<String> set = new HashSet<>();
-		
-		for(DBObject tweet:tweets){
-			DBObject dbo = (DBObject)tweet.get("entities");
-			DBObject dburl = (DBObject)dbo.get("urls");
-			String eurl = (String)dburl.get("expanded_url");
-			if(set.add(eurl)) uniqueUrls++;
+
+		for (DBObject tweet : tweets) {
+			DBObject dbo = (DBObject) tweet.get("entities");
+			BasicDBList dburl = (BasicDBList) dbo.get("urls");
+			for (int i = 0; i < dburl.size(); ++i) {
+				DBObject url = (DBObject) dburl.get(i);
+				String eurl = (String) url.get("expanded_url");
+				set.add(eurl);
+			}
 		}
-		
-		return uniqueUrls;
+
+		return set;
 	}
 
 	private static int minimum(int a, int b, int c) {
@@ -248,24 +261,38 @@ public class CharacteristicsExtractor {
 		return matcher.matches();
 	}
 
-	private static int getAccountAge(String created_at) {
-		long timeDifference = Calendar.getInstance().getTimeInMillis()
-				- Date.parse(created_at);
-		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-
-		return Math.round(daysDifference);
+	private int numOfUniqueDomains(HashSet<String> urls) {
+		HashSet<String> domains = new HashSet<>();
+		for (String url : urls) {
+			String trimmed = url.replaceAll("(https?)://", "").replace("www.",
+					"");
+			domains.add(trimmed.substring(0, trimmed.indexOf(".")));
+		}
+		return domains.size();
 	}
 
-	public void extract(DBObject o) {
+	public void extract(String tweet_col_name, long user_id) {
 		// TODO: get all the tweets from user with id = userID
 		// create the tweets arraylist
-		ArrayList<DBObject> tweets = new ArrayList<>(
-				(List<DBObject>) o.get("tweets"));
+
+		Cursor c = tdbm.getCollection(tweet_col_name).find(
+				new BasicDBObject("user.id", user_id));
+		ArrayList<DBObject> tweets = new ArrayList<>();
+		while (c.hasNext())
+			tweets.add(c.next());
+		
+		if (tweets.isEmpty())
+			return;
+			//throw new RuntimeException("Bye bye cruel world!");
+		
+		DBObject user = (DBObject) tweets.get(0).get("user");
 
 		// extract the characteristics
-		int numberOfFriends = 0, numberOfFollowers = 0;// ***
+		int numberOfFriends = (int) user.get("friends_count");
+		int numberOfFollowers = (int) user.get("followers_count");
 		float ffRatio = (float) numberOfFollowers / numberOfFriends;
-		int accountAge = 0;// ***
+		int accountAge = HelperFunctions.getAccountAge((String) user
+				.get("created_at"));
 		int numberOfTweets = tweets.size();
 		int numberOfRetweets = this.numOfRetweets(tweets);// ??
 		int numberOfReplies = 0;// ***
@@ -276,11 +303,12 @@ public class CharacteristicsExtractor {
 		int numberOfUrlTweets = this.numOfTweetsContainingUrls(tweets);
 		int numberOfCopies = this.numberOfSameTweets(tweets);
 		String mostUsedSource = this.findMostUsedSource(tweets);
-		int numberOfUniqueUrls = this.numOfUniqueUrls(tweets);
-		int numberOfUniqueDomains = 0;// ***
+		HashSet<String> urls = this.UniqueUrls(tweets);
+		int numberOfUniqueUrls = urls.size();
+		int numberOfUniqueDomains = numOfUniqueDomains(urls);
 
 		// insert them in the database
-		this.cdb.insertSelectedUser((long) o.get("_id"), numberOfFollowers,
+		this.cdb.insertSelectedUser(user_id, numberOfFollowers,
 				numberOfFriends, accountAge, numberOfTweets, numberOfRetweets,
 				numberOfReplies, numberOfMentions, numberOfOthersRetweets,
 				numberOfHashtags, numberOfHashtagTweets, numberOfUrlTweets,
@@ -288,4 +316,5 @@ public class CharacteristicsExtractor {
 				numberOfUniqueDomains);
 
 	}
+
 }
