@@ -239,8 +239,8 @@ public class CharacteristicsExtractor {
 				maxSource = key;
 			}
 		}
-
-		return maxSource;
+		// Removing html tags 
+		return maxSource.replaceAll("\\<.*?\\>", "");
 	}
 
 	private boolean isURL(String urlStr) {

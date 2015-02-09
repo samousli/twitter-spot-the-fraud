@@ -26,10 +26,10 @@ public class TweetAnalytics {
 
 		// Wait for console input
 		System.out.println("1) Group tweets by user.");
-		System.out.println("2) Generate basic statistics(4a).");
+		System.out.println("2) Generate basic analytics(4a).");
 		System.out.println("3) Calculate quartiles.");
 		System.out.println("4) Track selected users.");
-		System.out.println("5) Generate advanced statistics(4b).");
+		System.out.println("5) Generate detailed analytics(4b).");
 
 		Scanner reader = new Scanner(System.in);
 		int c = reader.nextInt();
@@ -56,7 +56,7 @@ public class TweetAnalytics {
 		case 4:
 			long[] user_ids = dbm.fetchChosenUsers("chosen_users");
 			if (user_ids.length == 0) {
-				System.out.println("No chosen users, choosing now");
+				System.out.println("No chosen users, choosing now..");
 				int[] qr1 = calculateQuartiles("users");
 				user_ids = pickUsersPerQuartile("users", "chosen_users", qr1,
 						10);
@@ -68,7 +68,7 @@ public class TweetAnalytics {
 			System.out.println("Generating advanced statistics..");
 			filterTweetsByUser("chosen_users", "chosen_user_tweets",
 					"chosen_user_tweets_filtered");
-			runAdvancedAnalytics("chosen_users", "chosen_user_tweets_filtered");
+			runDetailedAnalytics("chosen_users", "chosen_user_tweets_filtered");
 			System.out.println("Done.");
 			break;
 		default:
@@ -107,16 +107,12 @@ public class TweetAnalytics {
 		usrs.close();
 	}
 
-	private static void runAdvancedAnalytics(String usr_col, String tweet_col) {
+	private static void runDetailedAnalytics(String usr_col, String tweet_col) {
 		CharacteristicsExtractor e = new CharacteristicsExtractor(
 				new CharacteristicsDB(), dbm);
 		Cursor usrs = dbm.getCollection(usr_col).find();
-		int i = 0;
-		while (usrs.hasNext()) {
+		while (usrs.hasNext())
 			e.extract(tweet_col, Helpers.fetchLong(usrs.next(), "_id"));
-			i++;
-		}
-		System.out.println(i + " calls.");
 		usrs.close();
 	}
 

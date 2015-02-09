@@ -36,8 +36,8 @@ public class CharacteristicsDB {
 					ex);
 		}
 
-		this.allUsersCollection = this.db.getCollection("allUsers");
-		this.selectedUsersCollection = this.db.getCollection("selectedUsers");
+		this.allUsersCollection = this.db.getCollection("all_users");
+		this.selectedUsersCollection = this.db.getCollection("selected_users");
 
 	}
 
@@ -68,7 +68,7 @@ public class CharacteristicsDB {
 		BasicDBObject uniqueCharacteristics = new BasicDBObject();
 
 		// put the simple number characteristics
-		characteristics.put("user_id", id);
+		characteristics.put("_id", id);
 		simpleNumbers.put("number_of_followers", numberOfFollowers);
 		simpleNumbers.put("number_of_friends", numberOfFriends);
 		simpleNumbers.put("ff_ratio", (float) numberOfFollowers
