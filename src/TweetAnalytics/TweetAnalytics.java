@@ -28,9 +28,13 @@ public class TweetAnalytics {
 
 	public static void main(String[] args) {
 
-		//groupTweetsByUser("users", "tweets");
-		runUserAnalytics("users");
-
+		// groupTweetsByUser("users", "tweets");
+		runBasicAnalytics("users");
+		
+		
+		groupTweetsByUser("chosen_users", "chosen_user_tweets");
+		runBasicAnalytics("chosen_users");
+		
 		// Use to remove the frequency field for all documents
 		// db.users.update({},{$unset : {frequency: "" }}, {multi: true})
 
@@ -55,7 +59,7 @@ public class TweetAnalytics {
 
 	}
 
-	private static void runUserAnalytics(String usr_col) {
+	private static void runBasicAnalytics(String usr_col) {
 		Cursor usrs = dbm.getCollection(usr_col).find();
 		while (usrs.hasNext()) {
 			DBObject usr = usrs.next();
@@ -63,13 +67,12 @@ public class TweetAnalytics {
 			float ff_ratio = ((float) (fetchLong(usr, "followers")) / fetchLong(
 					usr, "friends"));
 			int age = getAccountAge((String) usr.get("created_at"));
-			
+
 			System.out.println(id + "\t" + ff_ratio + "\t" + age);
-			
+
 			/**
-			  	{ '_id' : id }, 
-				{ $set : { 'ff_ratio' : ff_ratio, 'age' : age } } 
-			*/
+			 * { '_id' : id }, { $set : { 'ff_ratio' : ff_ratio, 'age' : age } }
+			 */
 			dbm.getCollection(usr_col).update(
 					new BasicDBObject("_id", id),
 					new BasicDBObject("$set", new BasicDBObject("ff_ratio",
@@ -77,16 +80,26 @@ public class TweetAnalytics {
 		}
 		usrs.close();
 	}
-
-	public static int getAccountAge(String created_at) {
+	
+	private static void runAdvancedAnalytics(String usr_col) {
+		CharacteristicsExtractor e = new CharacteristicsExtractor(
+				new CharacteristicsDB(), dbm);
+		Cursor usrs = dbm.getCollection(usr_col).find();
+		while (usrs.hasNext()) {
+			e.extract(usrs.next());
+		}	
+		usrs.close();
+	}
+	
+	private static int getAccountAge(String created_at) {
 		long timeDifference = Calendar.getInstance().getTimeInMillis()
 				- Date.parse(created_at);
 		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-		
+
 		return Math.round(daysDifference);
 	}
 
-	public static void generateBasicUserStats() {
+	private static void generateBasicUserStats() {
 		UserDataFetcher fetcher = new UserDataFetcher();
 
 		Cursor users = dbm.getCollection("users_backup").find();
@@ -108,7 +121,7 @@ public class TweetAnalytics {
 	 * '$id'}, count: { $sum: 1 }} }, { $sort: {'count':-1} } ])
 	 */
 	@SuppressWarnings("deprecation")
-	public static void groupTweetsByUser(String user_col, String tweet_col) {
+	private static void groupTweetsByUser(String user_col, String tweet_col) {
 
 		dbm.initUserCollection(user_col);
 		// In order to avoid deleting potentially large amounts of data..again
@@ -157,7 +170,7 @@ public class TweetAnalytics {
 	 * Counts the number of trending topics each user appears in and saves it as a
 	 * field in the user collection
 	 */
-	public static void countFrequencyByUser(String user_col, String trend_col) {
+	private static void countFrequencyByUser(String user_col, String trend_col) {
 
 		Cursor trends = dbm.getCollection(trend_col).find();
 
@@ -179,7 +192,7 @@ public class TweetAnalytics {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static int[] calculateQuartiles(String collection) {
+	private static int[] calculateQuartiles(String collection) {
 
 		long c = dbm.getCollection(collection).getCount();
 		System.out.println("Document count: " + c);
@@ -227,7 +240,7 @@ public class TweetAnalytics {
 		throw new RuntimeException("MONGO fetchLong: Can't cast value");
 	}
 
-	public static long[] pickUsersPerQuartile(String inCol, String outCol,
+	private static long[] pickUsersPerQuartile(String inCol, String outCol,
 			int[] quartiles, int num_users) {
 
 		long[] user_ids = new long[num_users * 4];

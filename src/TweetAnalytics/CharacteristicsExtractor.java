@@ -8,10 +8,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
@@ -33,7 +35,7 @@ public class CharacteristicsExtractor {
 	 * @param tweets list of all the tweets a user has posted
 	 * @return returns the number of the tweets that should be considered as "multiple"
 	 */
-	public int numberOfSameTweets(ArrayList<DBObject> tweets){
+	private int numberOfSameTweets(ArrayList<DBObject> tweets){
 		
 		ArrayList<String> tweetStrings = new ArrayList<>();
 		for(DBObject dbo:tweets){
@@ -167,7 +169,7 @@ public class CharacteristicsExtractor {
 		HashSet<String> set = new HashSet<>();
 		
 		for(DBObject tweet:tweets){
-			String[] urls = (String[])tweet.get("urls");
+			String[] urls = (String[])tweet.get("entities");
 			for(String url:urls){
 				if(set.add(url)) uniqueUrls++;
 			}
@@ -252,11 +254,11 @@ public class CharacteristicsExtractor {
 		return Math.round(daysDifference);
 	}
 	
-	private void extract(long userID){
+	public void extract(DBObject o){
 		//TODO: get all the tweets from user with id = userID
-		
 		//create the tweets arraylist
-		ArrayList<DBObject> tweets = new ArrayList<>();
+		ArrayList<DBObject> tweets = 
+				new ArrayList<>((List<DBObject>)o.get("tweets"));
 		
 		//extract the characteristics
 		int numberOfFriends=0, numberOfFollowers=0;//***
@@ -278,15 +280,5 @@ public class CharacteristicsExtractor {
 		//insert them in the database
 		this.cdb.insertSelectedUser(userID, numberOfFollowers, numberOfFriends, accountAge, numberOfTweets, numberOfRetweets, numberOfReplies, numberOfMentions, numberOfOthersRetweets, numberOfHashtags, numberOfHashtagTweets, numberOfUrlTweets, numberOfCopies, mostUsedSource, numberOfUniqueUrls, numberOfUniqueDomains);
 		
-	}
-	
-	public void runExtractor(){
-		//get the chosen users' ids
-		long[] chosenUsersIds = this.tdbm.fetchChosenUsers("chosen_users");
-		
-		//extract the characteristics of each one
-		for(long userID:chosenUsersIds){
-			this.extract(userID);
-		}
 	}
 }
