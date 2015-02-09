@@ -28,7 +28,7 @@ public class TweetAnalytics {
 
 	public static void main(String[] args) {
 
-		groupTweetsByUser("users", "tweets");
+		//groupTweetsByUser("users", "tweets");
 		runUserAnalytics("users");
 
 		// Use to remove the frequency field for all documents
@@ -119,8 +119,7 @@ public class TweetAnalytics {
 		 * : '$user.id', tweets : { $push: '$text' }, count: { $sum: 1 } friends
 		 * : { $first : $user.friends_count } followers : { $first :
 		 * $user.followers_count } ff_ratio : { $first : $user.followers_count /
-		 * $user.friends_count } age : { $first : current_time -
-		 * $user.created_at } } };
+		 * $user.friends_count } age : { $first : $user.created_at } } };
 		 */
 		DBObject groupByUser = new BasicDBObject("$group", new BasicDBObject(
 				"_id", "$user.id")
