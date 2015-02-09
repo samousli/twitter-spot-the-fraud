@@ -128,6 +128,14 @@ public class CharacteristicsExtractor {
 		return count;
 	}
 	
+	private int numOfRetweets(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			if((boolean)tweet.get("retweeted")) count++;
+		}
+		return count;
+	}
+	
 	/**
 	 * 
 	 * @param tweet an unfiltered tweet
@@ -263,8 +271,7 @@ public class CharacteristicsExtractor {
 		float ffRatio = (float)numberOfFollowers/numberOfFriends;
 		int accountAge=0;//***
 		int numberOfTweets = tweets.size();
-		int numberOfRetweets=0;//***
-		float numberOfRetweetsPerTweet=0;//***
+		int numberOfRetweets=this.numOfRetweets(tweets);//??
 		int numberOfReplies=0;//***
 		int numberOfMentions = this.numOfMentions(tweets);
 		int numberOfOthersRetweets = this.numOfOthersRetweets(tweets);
