@@ -3,9 +3,14 @@ package TweetAnalytics;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -14,11 +19,13 @@ public class CharacteristicsExtractor {
 	private CharacteristicsDB cdb;
 	private DBManager tdbm;
 	private DBCollection tweets;
+	Pattern urlPattern;
 	
 	public CharacteristicsExtractor(CharacteristicsDB cdb, DBManager dbm){
 		this.cdb = cdb;
 		this.tdbm=dbm;
 		this.tweets = dbm.getTweets();
+		this.urlPattern = Pattern.compile("<\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]>");
 	}
 	
 	/**
@@ -26,13 +33,19 @@ public class CharacteristicsExtractor {
 	 * @param tweets list of all the tweets a user has posted
 	 * @return returns the number of the tweets that should be considered as "multiple"
 	 */
-	public int numberOfSameTweets(ArrayList<String> tweets){
+	public int numberOfSameTweets(ArrayList<DBObject> tweets){
+		
+		ArrayList<String> tweetStrings = new ArrayList<>();
+		for(DBObject dbo:tweets){
+			tweetStrings.add((String)dbo.get("text"));
+		}
+		
 		int result = 0;
 		ArrayList<String> filteredTweets = new ArrayList<>();
 		
 		//filter the tweets
-		for(int i=0; i < tweets.size() ; i++){
-			filteredTweets.add(this.filterTweet(tweets.get(i)));
+		for(int i=0; i < tweetStrings.size() ; i++){
+			filteredTweets.add(this.filterTweet(tweetStrings.get(i)));
 		}
 		
 		//count the multiple tweets
@@ -56,7 +69,7 @@ public class CharacteristicsExtractor {
 		return result;
 	}
 	
-	private int calcOthersRetweets(ArrayList<DBObject> tweets){
+	private int numOfOthersRetweets(ArrayList<DBObject> tweets){
 		int count = 0;
 		for(DBObject tweet:tweets){
 			count += (int)tweet.get("retweet_count");
@@ -68,7 +81,7 @@ public class CharacteristicsExtractor {
 	private int numOfTweetsContainingHashtags(ArrayList<DBObject> tweets){
 		int count = 0;
 		for(DBObject tweet:tweets){
-			DBObject[] ht = (DBObject[])tweet.get("hashtags");
+			String[] ht = (String[])tweet.get("hashtags");
 			if(ht.length>0){
 				count++;
 			}
@@ -79,7 +92,7 @@ public class CharacteristicsExtractor {
 	private int numOfHashtags(ArrayList<DBObject> tweets){
 		int sum=0;
 		for(DBObject tweet:tweets){
-			DBObject[] h = (DBObject[])tweet.get("hashtags");
+			String[] h = (String[])tweet.get("hashtags");
 			sum += h.length;
 		}
 		return sum;
@@ -88,7 +101,7 @@ public class CharacteristicsExtractor {
 	private int numOfTweetsContainingUrls(ArrayList<DBObject> tweets){
 		int count = 0;
 		for(DBObject tweet:tweets){
-			DBObject[] ut = (DBObject[])tweet.get("urls");
+			String[] ut = (String[])tweet.get("urls");
 			if(ut.length>0){
 				count++;
 			}
@@ -103,6 +116,14 @@ public class CharacteristicsExtractor {
 			if(t.length>0){
 				count++;
 			}
+		}
+		return count;
+	}
+	
+	private int numOfRetweets(ArrayList<DBObject> tweets){
+		int count = 0;
+		for(DBObject tweet:tweets){
+			if((boolean)tweet.get("retweeted")) count++;
 		}
 		return count;
 	}
@@ -125,7 +146,7 @@ public class CharacteristicsExtractor {
 		//iterate through the tokens and filter the unwanted ones
 		while(it.hasNext()){
 			String token = it.next();
-			if( (token.charAt(0) == '@') || (this.isValidURI(token)) ){
+			if( (token.charAt(0) == '@') || (this.isURL(token)) ){
 				it.remove();
 			}
 		}
@@ -141,9 +162,24 @@ public class CharacteristicsExtractor {
 	}
 	
 	
+	private int numOfUniqueUrls(ArrayList<DBObject> tweets){
+		int uniqueUrls = 0;
+		HashSet<String> set = new HashSet<>();
+		
+		for(DBObject tweet:tweets){
+			String[] urls = (String[])tweet.get("urls");
+			for(String url:urls){
+				if(set.add(url)) uniqueUrls++;
+			}
+		}
+		
+		return uniqueUrls;
+	}
+	
 	private static int minimum(int a, int b, int c) {                            
         return Math.min(Math.min(a, b), c);                                      
-    }                                                                            
+    }   
+	
  
     private static int computeLevenshteinDistance(String str1,String str2) {      
         int[][] distance = new int[str1.length() + 1][str2.length() + 1];        
@@ -195,13 +231,62 @@ public class CharacteristicsExtractor {
     	return maxSource;
     }
     
-	private boolean isValidURI(String uriStr) {
-	    try {
-	      URI uri = new URI(uriStr);
+	private boolean isURL(String urlStr) {
+	    /*try {
+	      URI uri = new URI(urlStr);
 	      return true;
 	    }
 	    catch (URISyntaxException e) {
 	        return false;
-	    }
+	    }*/
+		
+        Matcher matcher = this.urlPattern.matcher(urlStr);
+        return matcher.matches();
+	}
+	
+	private static int getAccountAge(String created_at) {
+		long timeDifference = Calendar.getInstance().getTimeInMillis()
+				- Date.parse(created_at);
+		float daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+		
+		return Math.round(daysDifference);
+	}
+	
+	private void extract(long userID){
+		//TODO: get all the tweets from user with id = userID
+		
+		//create the tweets arraylist
+		ArrayList<DBObject> tweets = new ArrayList<>();
+		
+		//extract the characteristics
+		int numberOfFriends=0, numberOfFollowers=0;//***
+		float ffRatio = (float)numberOfFollowers/numberOfFriends;
+		int accountAge=0;//***
+		int numberOfTweets = tweets.size();
+		int numberOfRetweets=this.numOfRetweets(tweets);//??
+		int numberOfReplies=0;//***
+		int numberOfMentions = this.numOfMentions(tweets);
+		int numberOfOthersRetweets = this.numOfOthersRetweets(tweets);
+		int numberOfHashtags = this.numOfHashtags(tweets);
+		int numberOfHashtagTweets = this.numOfTweetsContainingHashtags(tweets);		
+		int numberOfUrlTweets = this.numOfTweetsContainingUrls(tweets);		
+		int numberOfCopies = this.numberOfSameTweets(tweets);
+		String mostUsedSource = this.findMostUsedSource(tweets);
+		int numberOfUniqueUrls = this.numOfUniqueUrls(tweets);
+		int numberOfUniqueDomains=0;//***
+		
+		//insert them in the database
+		this.cdb.insertSelectedUser(userID, numberOfFollowers, numberOfFriends, accountAge, numberOfTweets, numberOfRetweets, numberOfReplies, numberOfMentions, numberOfOthersRetweets, numberOfHashtags, numberOfHashtagTweets, numberOfUrlTweets, numberOfCopies, mostUsedSource, numberOfUniqueUrls, numberOfUniqueDomains);
+		
+	}
+	
+	public void runExtractor(){
+		//get the chosen users' ids
+		long[] chosenUsersIds = this.tdbm.fetchChosenUsers("chosen_users");
+		
+		//extract the characteristics of each one
+		for(long userID:chosenUsersIds){
+			this.extract(userID);
+		}
 	}
 }
