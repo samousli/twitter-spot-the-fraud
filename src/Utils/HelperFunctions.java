@@ -5,6 +5,7 @@ import java.util.Date;
 
 public class HelperFunctions {
 	
+	@SuppressWarnings("deprecation")
 	public static int getAccountAge(String created_at) {
 		long timeDifference = Calendar.getInstance().getTimeInMillis()
 				- Date.parse(created_at);
