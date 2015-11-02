@@ -1,12 +1,3 @@
-This software was developed as an assignment in distributed operating systems course and is uploaded for primarily showcasing our work.
-
-The purpose was to collect a huge collection of tweets and spot the usage of bots and automatons to spam tweets by suspicious users.
-It was achieved by using the Twitter4j library and MongoDB databases.
-
-
-Some vague instructions follow as they were written originally:
-
-
 1) Collecting tweets of all globally trending topics:
 	- Set up a mongo server on localhost:28888 (mongo_up.sh can be used to just do that)
 	- Run java -jar TweetCollector.jar for as long as desired. 
@@ -15,7 +6,7 @@ Some vague instructions follow as they were written originally:
 	In our case we collected approximately 40gb of tweets, within a span for 4 days coinciding with the Super Bowl in US.
 
 
-2) Group by users:
+2) Group by user:
 	- Run TweetAnalytics.jar
 	- Choose the first option  (This is a lengthy process)
 
@@ -38,7 +29,7 @@ Some vague instructions follow as they were written originally:
 	Calculates the quartiles and the median of the user collection by frequency.
 	Also saves the quartile each user belongs to in the 'users' collection
 
-	Regrettably with our data the values we got were 1, 1, 2..Perhaps a mean value instead of a median would produce better results.
+	Sadly with our data the values we got were 1, 1, 2..Perhaps a mean value instead of a median would produce better results.
 	There seemed to be noticeable number of spammers which we noticed from the content of their messages. But a random sample
 	of 40 users among 880k didn't capture such representatives.
 	
